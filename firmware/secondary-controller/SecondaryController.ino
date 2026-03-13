@@ -53,7 +53,7 @@ void loop() {
 
     // Option 2: Use a HID game-controller library to send
     // axes and buttons directly as a USB joystick.
-    // See: https://github.com/MHeironworkarounds/ArduinoJoystickLibrary
+    // See: https://github.com/MHeironimus/ArduinoJoystickLibrary
 
     delay(10); // ~100 Hz update rate
 }
