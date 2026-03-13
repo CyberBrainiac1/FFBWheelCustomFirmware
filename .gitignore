@@ -1,0 +1,18 @@
+# Build outputs
+FFBWheelConfig/bin/
+FFBWheelConfig/obj/
+
+# VS user settings
+*.user
+*.suo
+.vs/
+
+# NuGet restore cache
+*.nupkg
+*.snupkg
+
+# macOS
+.DS_Store
+
+# Windows thumbnails
+Thumbs.db
