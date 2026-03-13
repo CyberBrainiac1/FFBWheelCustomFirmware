@@ -29,8 +29,100 @@ A compact, dark Windows desktop utility for configuring a DIY force-feedback ste
 ## Requirements
 
 - Windows 10 / 11
-- .NET 8 Desktop Runtime
+- .NET 8 Desktop Runtime (to run the app) **or** .NET 8 SDK (to build from source)
 - Arduino Leonardo running compatible FFB wheel firmware (already flashed)
+- USB cable to connect the Arduino Leonardo to your PC
+
+---
+
+## Installation
+
+### Option A – Run a pre-built release
+
+1. **Download** the latest release from the [Releases](../../releases) page.
+2. **Install the .NET 8 Desktop Runtime** (if not already installed).
+   Open PowerShell and run:
+   ```powershell
+   winget install Microsoft.DotNet.DesktopRuntime.8
+   ```
+   Or download it manually from <https://dotnet.microsoft.com/en-us/download/dotnet/8.0> (look for
+   ".NET Desktop Runtime 8.x" → Windows x64 installer).
+3. **Extract** the downloaded zip and run `FFBWheelConfig.exe`.
+
+### Option B – Build from source
+
+> Requires the **.NET 8 SDK** (the SDK includes the runtime, so a separate runtime install is not needed).
+
+**1. Install the .NET 8 SDK**
+
+```powershell
+winget install Microsoft.DotNet.SDK.8
+```
+
+Or download the installer from <https://dotnet.microsoft.com/en-us/download/dotnet/8.0>
+(look for "SDK 8.x" → Windows x64 installer).
+
+Verify the installation:
+
+```powershell
+dotnet --version
+```
+
+You should see a version starting with `8.`.
+
+**2. Install Git** (skip if already installed)
+
+```powershell
+winget install Git.Git
+```
+
+Verify:
+
+```powershell
+git --version
+```
+
+**3. Clone the repository**
+
+```powershell
+git clone https://github.com/CyberBrainiac1/FFBWheelCustomFirmware.git
+cd FFBWheelCustomFirmware
+```
+
+**4. Restore dependencies**
+
+```powershell
+dotnet restore FFBWheelConfig/FFBWheelConfig.csproj
+```
+
+**5. Build**
+
+```powershell
+dotnet build FFBWheelConfig/FFBWheelConfig.csproj --configuration Release
+```
+
+**6. Run**
+
+```powershell
+dotnet run --project FFBWheelConfig/FFBWheelConfig.csproj --configuration Release
+```
+
+Or run the compiled executable directly:
+
+```powershell
+.\FFBWheelConfig\bin\Release\net8.0-windows\FFBWheelConfig.exe
+```
+
+---
+
+## Quick-start (after installation)
+
+1. Connect your Arduino Leonardo to the PC via USB.
+2. Launch FFBWheelConfig.
+3. Select the correct COM port from the dropdown (click **↻** to refresh the list).
+4. Click **Connect**. The status bar at the bottom will show "Connected" on success. If it fails, check that the correct COM port is selected and that no other application is using it.
+5. Click **Read from Wheel** to load the current settings.
+6. Adjust settings and click **Apply** (applies immediately but lost on power cycle) or **Save to Wheel** (persisted to EEPROM and survives power cycles).
 
 ---
 
@@ -120,8 +212,10 @@ FFBWheelConfig/
 
 ## Building from source
 
-```
-dotnet build --configuration Release
+```powershell
+dotnet restore FFBWheelConfig/FFBWheelConfig.csproj
+dotnet build   FFBWheelConfig/FFBWheelConfig.csproj --configuration Release
 ```
 
-Requires .NET 8 SDK with `EnableWindowsTargeting=true` (already set in the `.csproj`).
+Requires .NET 8 SDK (see [Installation → Option B](#option-b--build-from-source) above).
+`EnableWindowsTargeting=true` is already set in the `.csproj`, so the build works on any OS with the SDK installed.
