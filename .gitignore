@@ -1,6 +1,6 @@
 # Build outputs
-FFBWheelConfig/bin/
-FFBWheelConfig/obj/
+desktop-app/bin/
+desktop-app/obj/
 
 # VS user settings
 *.user
@@ -10,6 +10,11 @@ FFBWheelConfig/obj/
 # NuGet restore cache
 *.nupkg
 *.snupkg
+
+# Arduino build artifacts
+firmware/leonardo-wheel/build/
+*.hex
+*.elf
 
 # macOS
 .DS_Store

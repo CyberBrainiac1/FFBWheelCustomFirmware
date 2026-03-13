@@ -1,155 +1,273 @@
-# FFB Wheel Config
+# FFB Wheel — DIY Force Feedback Steering Wheel
 
-A compact, dark Windows desktop utility for configuring a DIY force-feedback steering wheel controller based on an Arduino Leonardo.
+Everything you need to build and configure a USB force-feedback steering wheel.
 
----
-
-## What it does
-
-- Connects to the wheel controller over a USB serial (COM) port
-- Reads current settings from the wheel (force levels, steering range, encoder centre, etc.)
-- Allows editing those settings in a clean, single-window UI
-- Applies settings temporarily (`Apply`) or persists them to EEPROM (`Save to Wheel`)
-- Resets settings to firmware defaults (`Reset Defaults`)
-- Displays a **live steering angle** that mirrors the same processed steering value the firmware reports to the PC / game
-- Shows raw encoder counts as secondary information
+| Folder | What it is |
+|---|---|
+| **desktop-app/** | Windows configuration utility (C# / WinForms / .NET 8) |
+| **firmware/leonardo-wheel/** | Arduino Leonardo firmware (encoder + motor + serial config) |
+| **firmware/secondary-controller/** | Optional second controller template (pedals / buttons) |
+| **ui-preview/** | Browser preview of the desktop UI (works on Chromebook) |
 
 ---
 
-## What it does NOT do
+## What you need
 
-- Flash or update firmware
-- Upload pedal calibration data
-- Show telemetry dashboards or graphs
-- Provide a game launcher
-- Replace the Arduino firmware
+### Hardware
+
+- Arduino Leonardo
+- BTS7960 motor driver
+- 600 PPR quadrature encoder
+- DC motor (for force feedback)
+- USB cable (micro-USB to PC)
+- Optional: second microcontroller for pedals (e.g. Seeed XIAO RP2040)
+
+### Software
+
+- Windows 10 or 11 (for the desktop app)
+- .NET 8 SDK **or** .NET 8 Desktop Runtime
+- arduino-cli (for compiling and flashing firmware)
+- Git (to download this repository)
 
 ---
 
-## Requirements
+## Quick start — step by step
 
-- Windows 10 / 11
-- .NET 8 Desktop Runtime (to run the app) **or** .NET 8 SDK (to build from source)
-- Arduino Leonardo running compatible FFB wheel firmware (already flashed)
-- USB cable to connect the Arduino Leonardo to your PC
+Follow every step in order. Copy-paste the commands into **PowerShell** (Windows) or **Terminal** (Linux / macOS).
 
 ---
 
-## Installation
+### Step 1 — Download this repository
 
-### Option A – Run a pre-built release
+Install Git if you don't have it:
 
-1. **Download** the latest release from the [Releases](../../releases) page.
-2. **Install the .NET 8 Desktop Runtime** (if not already installed).
-   Open PowerShell and run:
-   ```powershell
-   winget install Microsoft.DotNet.DesktopRuntime.8
-   ```
-   Or download it manually from <https://dotnet.microsoft.com/en-us/download/dotnet/8.0> (look for
-   ".NET Desktop Runtime 8.x" → Windows x64 installer).
-3. **Extract** the downloaded zip and run `FFBWheelConfig.exe`.
-
-### Option B – Build from source
-
-> Requires the **.NET 8 SDK** (the SDK includes the runtime, so a separate runtime install is not needed).
-
-**1. Install the .NET 8 SDK**
-
-```powershell
-winget install Microsoft.DotNet.SDK.8
 ```
-
-Or download the installer from <https://dotnet.microsoft.com/en-us/download/dotnet/8.0>
-(look for "SDK 8.x" → Windows x64 installer).
-
-Verify the installation:
-
-```powershell
-dotnet --version
-```
-
-You should see a version starting with `8.`.
-
-**2. Install Git** (skip if already installed)
-
-```powershell
 winget install Git.Git
 ```
 
-Verify:
+Then clone the repo:
 
-```powershell
-git --version
 ```
-
-**3. Clone the repository**
-
-```powershell
 git clone https://github.com/CyberBrainiac1/FFBWheelCustomFirmware.git
 cd FFBWheelCustomFirmware
 ```
 
-**4. Restore dependencies**
+---
 
-```powershell
-dotnet restore FFBWheelConfig/FFBWheelConfig.csproj
+### Step 2 — Flash the firmware to your Arduino Leonardo
+
+#### 2a. Install arduino-cli
+
+**Windows (PowerShell):**
+
+```
+winget install ArduinoSA.CLI
 ```
 
-**5. Build**
+**Linux:**
 
-```powershell
-dotnet build FFBWheelConfig/FFBWheelConfig.csproj --configuration Release
+```
+curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+sudo mv bin/arduino-cli /usr/local/bin/
 ```
 
-**6. Run**
+**macOS:**
 
-```powershell
-dotnet run --project FFBWheelConfig/FFBWheelConfig.csproj --configuration Release
+```
+brew install arduino-cli
 ```
 
-Or run the compiled executable directly:
+Verify it works:
 
-```powershell
-.\FFBWheelConfig\bin\Release\net8.0-windows\FFBWheelConfig.exe
+```
+arduino-cli version
+```
+
+#### 2b. Install the AVR board support
+
+Run this once:
+
+```
+arduino-cli core install arduino:avr
+```
+
+#### 2c. Build the firmware
+
+**Windows:**
+
+```
+firmware\leonardo-wheel\build_firmware.bat
+```
+
+**Linux / macOS:**
+
+```
+chmod +x firmware/leonardo-wheel/build_firmware.sh
+./firmware/leonardo-wheel/build_firmware.sh
+```
+
+You should see `Build succeeded` and a `.hex` file in `firmware/leonardo-wheel/build/`.
+
+#### 2d. Flash the firmware
+
+Plug in your Arduino Leonardo via USB. Find which port it's on:
+
+```
+arduino-cli board list
+```
+
+Then flash:
+
+**Windows:**
+
+```
+firmware\leonardo-wheel\flash_firmware.bat COM4
+```
+
+**Linux / macOS:**
+
+```
+./firmware/leonardo-wheel/flash_firmware.sh /dev/ttyACM0
+```
+
+Replace `COM4` or `/dev/ttyACM0` with your actual port.
+
+---
+
+### Step 3 — Run the desktop configuration app
+
+#### 3a. Install .NET 8
+
+**To run a pre-built release:**
+
+```
+winget install Microsoft.DotNet.DesktopRuntime.8
+```
+
+**To build from source** (the SDK includes the runtime):
+
+```
+winget install Microsoft.DotNet.SDK.8
+```
+
+Or download manually: <https://dotnet.microsoft.com/en-us/download/dotnet/8.0>
+
+Verify:
+
+```
+dotnet --version
+```
+
+#### 3b. Build the desktop app
+
+```
+dotnet restore desktop-app/FFBWheelConfig.csproj
+dotnet build   desktop-app/FFBWheelConfig.csproj --configuration Release
+```
+
+#### 3c. Run
+
+```
+dotnet run --project desktop-app/FFBWheelConfig.csproj --configuration Release
+```
+
+Or run the exe directly:
+
+```
+desktop-app\bin\Release\net8.0-windows\FFBWheelConfig.exe
 ```
 
 ---
 
-## Quick-start (after installation)
+### Step 4 — Connect and configure
 
-1. Connect your Arduino Leonardo to the PC via USB.
-2. Launch FFBWheelConfig.
-3. Select the correct COM port from the dropdown (click **↻** to refresh the list).
-4. Click **Connect**. The status bar at the bottom will show "Connected" on success. If it fails, check that the correct COM port is selected and that no other application is using it.
-5. Click **Read from Wheel** to load the current settings.
-6. Adjust settings and click **Apply** (applies immediately but lost on power cycle) or **Save to Wheel** (persisted to EEPROM and survives power cycles).
+1. Plug in the Arduino Leonardo via USB.
+2. Open the desktop app.
+3. Select the COM port from the dropdown (click **↻** to refresh).
+4. Click **Connect**. The status dot turns green.
+5. Click **Read from Wheel** to load current settings.
+6. Adjust sliders (force, damping, friction, spring, steering range).
+7. Click **Apply** to send settings (active until power cycle).
+8. Click **Save to Wheel** to write settings to EEPROM (persists across reboots).
 
 ---
 
-## Serial Protocol
+### Step 5 (optional) — Preview the UI in a browser
 
-Baud rate: **115 200 8N1**
+If you want to see what the desktop app looks like without installing .NET (for example on a Chromebook):
 
-### Commands (app → wheel)
+```
+cd ui-preview
+```
 
-| Command | Description |
+Open `index.html` in any browser. Click **Connect** to see a simulated live angle display.
+
+---
+
+## Project structure
+
+```
+FFBWheelCustomFirmware/
+├── desktop-app/                     Windows configuration utility
+│   ├── FFBWheelConfig.csproj
+│   ├── Program.cs
+│   ├── Forms/MainForm.cs            Single-window dark UI
+│   ├── Models/
+│   │   ├── WheelSettings.cs         Settings data model
+│   │   └── WheelLiveState.cs        Live state data model
+│   └── Services/
+│       ├── SerialWheelClient.cs     Low-level serial port wrapper
+│       ├── WheelControllerService.cs Service coordinator + polling
+│       └── WheelProtocolParser.cs   Protocol parser
+├── firmware/
+│   ├── leonardo-wheel/              Arduino Leonardo firmware
+│   │   ├── LeonardoWheel.ino        Main sketch
+│   │   ├── EncoderReader.h/.cpp     Quadrature encoder (D2/D3)
+│   │   ├── MotorDriver.h/.cpp       BTS7960 motor control
+│   │   ├── WheelSettings.h/.cpp     Settings struct + defaults
+│   │   ├── EepromStorage.h/.cpp     EEPROM persistence
+│   │   ├── SerialProtocol.h/.cpp    Serial command interface
+│   │   ├── WheelMath.h/.cpp         Angle math + FFB calculation
+│   │   ├── build_firmware.bat/.sh   Compile to .hex
+│   │   ├── flash_firmware.bat/.sh   Flash via avrdude
+│   │   └── README.md
+│   └── secondary-controller/        Optional pedal/button controller
+│       ├── SecondaryController.ino
+│       └── README.md
+├── ui-preview/                      Browser-based UI preview
+│   ├── index.html
+│   ├── styles.css
+│   └── script.js
+├── FFBWheelConfig.slnx              Visual Studio solution file
+└── README.md                        ← you are here
+```
+
+---
+
+## Serial protocol
+
+The desktop app and firmware talk over USB serial at **115 200 baud, 8N1**.
+
+### Commands (app → firmware)
+
+| Command | What it does |
 |---|---|
-| `GET_SETTINGS` | Request all wheel settings |
-| `GET_LIVE_STATE` | Request current live angle and raw counts |
-| `SET FORCE <0-100>` | Overall force percentage |
-| `SET MIN_FORCE <0-100>` | Minimum force |
-| `SET DAMPING <0-100>` | Damping level |
-| `SET FRICTION <0-100>` | Friction level |
-| `SET SPRING <0-100>` | Spring level |
-| `SET RANGE <90-1800>` | Steering range in degrees |
-| `SET INV_ENCODER <0\|1>` | Invert encoder direction |
-| `SET INV_MOTOR <0\|1>` | Invert motor direction |
-| `APPLY` | Apply all pending settings |
-| `SAVE` | Persist current settings to EEPROM |
-| `LOAD_DEFAULTS` | Reset to firmware defaults (then re-reads settings) |
-| `SET_CENTER` | Set current wheel position as the steering centre |
+| `GET_SETTINGS` | Request all settings |
+| `GET_LIVE_STATE` | Request current angle + raw counts |
+| `SET FORCE 60` | Set overall force (0–100) |
+| `SET MIN_FORCE 5` | Set minimum force (0–100) |
+| `SET DAMPING 10` | Set damping (0–100) |
+| `SET FRICTION 4` | Set friction (0–100) |
+| `SET SPRING 15` | Set spring (0–100) |
+| `SET RANGE 900` | Set steering range (90–1800°) |
+| `SET INV_ENCODER 0` | Invert encoder (0 or 1) |
+| `SET INV_MOTOR 0` | Invert motor (0 or 1) |
+| `APPLY` | Apply pending settings |
+| `SAVE` | Persist to EEPROM |
+| `LOAD_DEFAULTS` | Reset to defaults |
+| `SET_CENTER` | Set current position as centre |
 
-### Settings block (wheel → app)
+### Settings response (firmware → app)
 
 ```
 BEGIN_SETTINGS
@@ -159,16 +277,14 @@ DAMPING=10
 FRICTION=4
 SPRING=15
 RANGE=900
-CENTER=12345
+CENTER=0
 INV_ENCODER=0
 INV_MOTOR=0
 FW_VERSION=1.0.0
 END_SETTINGS
 ```
 
-### Live state (wheel → app)
-
-Either as a structured block:
+### Live state response (firmware → app)
 
 ```
 BEGIN_LIVE
@@ -177,45 +293,35 @@ RAW_COUNTS=12054
 END_LIVE
 ```
 
-Or as standalone lines (both formats are accepted):
+---
 
-```
-LIVE_ANGLE=42
-RAW_COUNTS=12054
-```
+## Default settings
 
-### Live angle note
-
-`LIVE_ANGLE` must represent the **same processed steering position** the firmware reports to the PC/game over USB HID.  
-The app polls `GET_LIVE_STATE` every 100 ms and displays the result in the large central readout.  
-Raw encoder counts are displayed in small secondary text only.
+| Setting | Default |
+|---|---|
+| Overall force | 60 % |
+| Minimum force | 5 % |
+| Damping | 10 % |
+| Friction | 4 % |
+| Spring | 15 % |
+| Steering range | 900° |
+| Invert encoder | Off |
+| Invert motor | Off |
 
 ---
 
-## Architecture
+## Troubleshooting
 
-```
-FFBWheelConfig/
-├── Models/
-│   ├── WheelSettings.cs        – settings data model
-│   └── WheelLiveState.cs       – live-state data model
-├── Services/
-│   ├── WheelProtocolParser.cs  – parses serial protocol messages
-│   ├── SerialWheelClient.cs    – low-level serial port wrapper
-│   └── WheelControllerService.cs – coordinates client, parser, polling timer
-├── Forms/
-│   └── MainForm.cs             – single-window UI (no Designer file; fully code-first)
-└── Program.cs
-```
+| Problem | Solution |
+|---|---|
+| Can't find the COM port | Unplug and re-plug the Leonardo. Click ↻ in the app. On Windows, check Device Manager → Ports. |
+| Build fails with "core not found" | Run `arduino-cli core install arduino:avr` |
+| Flash fails | The Leonardo's bootloader port only appears for a few seconds after reset. Try double-pressing the reset button on the board, then immediately run the flash command. |
+| `dotnet` command not found | Install the .NET 8 SDK: `winget install Microsoft.DotNet.SDK.8` |
+| App shows "Disconnected" immediately | Check that no other program (Arduino IDE Serial Monitor, etc.) has the COM port open. |
 
 ---
 
-## Building from source
+## License
 
-```powershell
-dotnet restore FFBWheelConfig/FFBWheelConfig.csproj
-dotnet build   FFBWheelConfig/FFBWheelConfig.csproj --configuration Release
-```
-
-Requires .NET 8 SDK (see [Installation → Option B](#option-b--build-from-source) above).
-`EnableWindowsTargeting=true` is already set in the `.csproj`, so the build works on any OS with the SDK installed.
+This project is provided as-is for educational and personal use.

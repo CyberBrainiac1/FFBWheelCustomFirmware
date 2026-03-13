@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFB Wheel Config — UI Preview</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- ════════ TOP BAR ════════ -->
+    <div id="top-bar">
+        <select id="port-select">
+            <option>COM3</option>
+            <option selected>COM4</option>
+            <option>COM5</option>
+        </select>
+        <button id="btn-refresh" title="Refresh ports">&#x21ba;</button>
+        <button id="btn-connect">Connect</button>
+        <button id="btn-disconnect" disabled>Disconnect</button>
+        <span id="lbl-firmware">FW 1.0.0</span>
+        <span id="status-indicator">
+            <span id="status-dot"></span>
+            <span id="status-text">Disconnected</span>
+        </span>
+    </div>
+
+    <!-- ════════ STEERING PANEL ════════ -->
+    <div id="steering-panel" class="panel">
+        <div id="angle-display">
+            <span id="angle-value">0</span><span id="angle-deg">°</span>
+        </div>
+        <div id="raw-counts">Raw: 0</div>
+
+        <div class="slider-row">
+            <label>Steering Range</label>
+            <input type="range" id="sld-range" min="90" max="1800" value="900">
+            <input type="number" id="nud-range" min="90" max="1800" value="900">
+            <span class="unit">°</span>
+        </div>
+
+        <button id="btn-center">Set Center</button>
+    </div>
+
+    <!-- ════════ FORCE & TUNING PANEL ════════ -->
+    <div id="settings-panel" class="panel">
+        <div class="slider-row">
+            <label>Overall Force</label>
+            <input type="range" id="sld-force" min="0" max="100" value="60">
+            <input type="number" id="nud-force" min="0" max="100" value="60">
+            <span class="unit">%</span>
+        </div>
+        <div class="slider-row">
+            <label>Min Force</label>
+            <input type="range" id="sld-min-force" min="0" max="100" value="5">
+            <input type="number" id="nud-min-force" min="0" max="100" value="5">
+            <span class="unit">%</span>
+        </div>
+        <div class="slider-row">
+            <label>Damping</label>
+            <input type="range" id="sld-damping" min="0" max="100" value="10">
+            <input type="number" id="nud-damping" min="0" max="100" value="10">
+            <span class="unit">%</span>
+        </div>
+        <div class="slider-row">
+            <label>Friction</label>
+            <input type="range" id="sld-friction" min="0" max="100" value="4">
+            <input type="number" id="nud-friction" min="0" max="100" value="4">
+            <span class="unit">%</span>
+        </div>
+        <div class="slider-row">
+            <label>Spring</label>
+            <input type="range" id="sld-spring" min="0" max="100" value="15">
+            <input type="number" id="nud-spring" min="0" max="100" value="15">
+            <span class="unit">%</span>
+        </div>
+
+        <div id="checkbox-row">
+            <label><input type="checkbox" id="chk-inv-encoder"> Invert Encoder</label>
+            <label><input type="checkbox" id="chk-inv-motor"> Invert Motor</label>
+        </div>
+    </div>
+
+    <!-- ════════ BOTTOM BAR ════════ -->
+    <div id="bottom-bar">
+        <button id="btn-read">Read from Wheel</button>
+        <button id="btn-apply" class="accent">Apply</button>
+        <button id="btn-save" class="accent">Save to Wheel</button>
+        <button id="btn-reset">Reset Defaults</button>
+        <span id="lbl-status">UI preview — no device connected</span>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
