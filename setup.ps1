@@ -9,6 +9,7 @@
 # ============================================================
 
 param(
+    [switch]$SkipGit,
     [switch]$SkipDotNet,
     [switch]$SkipArduino
 )
@@ -28,11 +29,27 @@ function Test-Command([string]$cmd) {
 
 Write-Host ""
 Write-Host "FFB Wheel — Setup Script" -ForegroundColor Green
-Write-Host "This will install: arduino-cli, .NET 8 SDK, and the AVR board core."
+Write-Host "This will install: Git, arduino-cli, .NET 8 SDK, and the AVR board core."
 Write-Host ""
 
 # ------------------------------------------------------------------
-# 1. arduino-cli
+# 1. Git
+# ------------------------------------------------------------------
+if (-not $SkipGit) {
+    Write-Step "Installing Git"
+
+    if (Test-Command 'git') {
+        Write-Host "Git is already installed: $(git --version)" -ForegroundColor Green
+    } else {
+        Write-Host "Installing Git via winget..."
+        winget install --id Git.Git --accept-source-agreements --accept-package-agreements
+        $env:PATH = [System.Environment]::GetEnvironmentVariable('PATH', 'Machine') + ';' +
+                    [System.Environment]::GetEnvironmentVariable('PATH', 'User')
+    }
+}
+
+# ------------------------------------------------------------------
+# 2. arduino-cli
 # ------------------------------------------------------------------
 if (-not $SkipArduino) {
     Write-Step "Installing arduino-cli"
@@ -54,7 +71,7 @@ if (-not $SkipArduino) {
 }
 
 # ------------------------------------------------------------------
-# 2. .NET 8 SDK
+# 3. .NET 8 SDK
 # ------------------------------------------------------------------
 if (-not $SkipDotNet) {
     Write-Step "Installing .NET 8 SDK"
@@ -89,7 +106,7 @@ Write-Host ""
 Write-Host "Next steps:"
 Write-Host ""
 Write-Host "  Option A — run all remaining steps in one command (recommended):"
-Write-Host "       powershell -ExecutionPolicy Bypass -File install.ps1 -SkipArduino -SkipDotNet"
+Write-Host "       powershell -ExecutionPolicy Bypass -File install.ps1 -SkipGit -SkipArduino -SkipDotNet"
 Write-Host ""
 Write-Host "  Option B — run each step individually:"
 Write-Host "    1. Build the firmware:"

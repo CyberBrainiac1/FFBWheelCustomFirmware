@@ -33,7 +33,40 @@ Everything you need to build and configure a USB force-feedback steering wheel.
 
 ## Quick start — step by step
 
-### Windows — one command does everything
+### Windows — brand new machine (nothing installed yet)
+
+Open **PowerShell** (Win + X → Windows PowerShell) and paste **one line**:
+
+```
+irm https://raw.githubusercontent.com/CyberBrainiac1/FFBWheelCustomFirmware/main/bootstrap.ps1 | iex
+```
+
+That single command installs Git, clones this repository, installs all other prerequisites, compiles the firmware, flashes it to the board, and builds the desktop app.  Nothing else is needed.
+
+Optional — pass flags to customise the bootstrap (e.g. specify a COM port or skip steps):
+```
+& ([scriptblock]::Create((irm 'https://raw.githubusercontent.com/CyberBrainiac1/FFBWheelCustomFirmware/main/bootstrap.ps1'))) -Port COM4 -SkipFlash
+```
+
+Available flags:
+
+| Flag | Effect |
+|---|---|
+| `-Port COM4` | Use a specific COM port instead of auto-detecting |
+| `-InstallDir C:\MyFolder` | Clone the repo to a custom location (default: `%USERPROFILE%\FFBWheelCustomFirmware`) |
+| `-SkipFlash` | Build firmware but don't flash yet |
+| `-SkipDesktopApp` | Skip the desktop app build |
+| `-SkipDotNet` | Skip .NET 8 SDK installation |
+| `-SkipArduino` | Skip arduino-cli / AVR core installation |
+
+After the bootstrap completes, launch the desktop app any time with:
+```
+powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\FFBWheelCustomFirmware\desktop-app\run_desktop_app.ps1"
+```
+
+---
+
+### Windows — already have the repo cloned (one command does everything)
 
 After cloning, plug in your Arduino Leonardo and run **one** command from the repo root:
 
@@ -50,6 +83,7 @@ Optional flags:
 | `-Port COM4` | Use a specific COM port instead of auto-detecting |
 | `-SkipFlash` | Build firmware but don't flash yet |
 | `-SkipDesktopApp` | Skip the desktop app build |
+| `-SkipGit` | Skip Git installation |
 | `-SkipDotNet` | Skip .NET 8 SDK installation |
 | `-SkipArduino` | Skip arduino-cli / AVR core installation |
 
@@ -91,7 +125,7 @@ cd FFBWheelCustomFirmware
 
 ### Step 2 — Install prerequisites (Windows only)
 
-Run this **once** from the repo root. It installs arduino-cli, the .NET 8 SDK, and the AVR board core automatically:
+Run this **once** from the repo root. It installs Git, arduino-cli, the .NET 8 SDK, and the AVR board core automatically:
 
 ```
 powershell -ExecutionPolicy Bypass -File setup.ps1
@@ -207,8 +241,9 @@ Open `index.html` in any browser. Click **Connect** to see a simulated live angl
 
 ```
 FFBWheelCustomFirmware/
+├── bootstrap.ps1                    Fresh-machine one-liner: installs Git, clones repo, runs install.ps1 (Windows)
 ├── install.ps1                      Full one-shot installer: prereqs + firmware + desktop app (Windows)
-├── setup.ps1                        Prerequisite installer only: arduino-cli, .NET 8, AVR core (Windows)
+├── setup.ps1                        Prerequisite installer only: Git, arduino-cli, .NET 8, AVR core (Windows)
 ├── desktop-app/                     Windows configuration utility
 │   ├── FFBWheelConfig.csproj
 │   ├── Program.cs
