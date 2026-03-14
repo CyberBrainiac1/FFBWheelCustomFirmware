@@ -33,9 +33,41 @@ Everything you need to build and configure a USB force-feedback steering wheel.
 
 ## Quick start — step by step
 
-**Windows users:** PowerShell scripts are provided for every step so you only need to copy-paste one command at a time. Follow the **Windows (PowerShell)** sections below.
+### Windows — one command does everything
 
-**Linux / macOS users:** Use the **Terminal** sections.
+After cloning, plug in your Arduino Leonardo and run **one** command from the repo root:
+
+```
+powershell -ExecutionPolicy Bypass -File install.ps1
+```
+
+This single script installs all prerequisites, compiles the firmware, flashes it to the board (auto-detecting the COM port), and builds the desktop app.  Nothing else is needed before you open the app.
+
+Optional flags:
+
+| Flag | Effect |
+|---|---|
+| `-Port COM4` | Use a specific COM port instead of auto-detecting |
+| `-SkipFlash` | Build firmware but don't flash yet |
+| `-SkipDesktopApp` | Skip the desktop app build |
+| `-SkipDotNet` | Skip .NET 8 SDK installation |
+| `-SkipArduino` | Skip arduino-cli / AVR core installation |
+
+Example — specify a port and skip the desktop app build:
+```
+powershell -ExecutionPolicy Bypass -File install.ps1 -Port COM4 -SkipDesktopApp
+```
+
+After installation completes, launch the desktop app with:
+```
+powershell -ExecutionPolicy Bypass -File desktop-app\run_desktop_app.ps1
+```
+
+---
+
+### Windows — step by step (if you prefer to run each step separately)
+
+**Linux / macOS users:** Use the **Terminal** sections below.
 
 ---
 
@@ -175,7 +207,8 @@ Open `index.html` in any browser. Click **Connect** to see a simulated live angl
 
 ```
 FFBWheelCustomFirmware/
-├── setup.ps1                        One-shot prerequisite installer (Windows)
+├── install.ps1                      Full one-shot installer: prereqs + firmware + desktop app (Windows)
+├── setup.ps1                        Prerequisite installer only: arduino-cli, .NET 8, AVR core (Windows)
 ├── desktop-app/                     Windows configuration utility
 │   ├── FFBWheelConfig.csproj
 │   ├── Program.cs
