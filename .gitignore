@@ -16,6 +16,26 @@ firmware/leonardo-wheel/build/
 *.hex
 *.elf
 
+# Keep versioned release artifacts in git
+!versions/
+!versions/**/
+!versions/**/*.hex
+!versions/**/*.exe
+!versions/**/*.json
+!versions/**/*.txt
+
+# Local reverse-engineering / tooling outputs
+.tools/
+desktop-app/emc_utility_unpack/
+desktop-app/emc_utility_decompiled/
+desktop-app/publish/
+desktop-app/EMCUtillityLite setup.exe
+firmware/emclite_unpack/
+firmware/emclite_disasm.txt
+firmware/secondary-controller/build/
+compile.py
+desktop-app/test_serial.csx
+
 # macOS
 .DS_Store
 

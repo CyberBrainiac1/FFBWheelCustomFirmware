@@ -53,6 +53,10 @@ public sealed class WheelControllerService : IDisposable
         LiveState.IsConnected = true;
         LiveState.DeviceName = portName;
         _parser.Reset();
+        // Leonardo reboots when DTR goes high on connect.
+        // Wait for the bootloader to finish before sending commands.
+        Thread.Sleep(2500);
+        _client.SetReady();
         StartLiveTimer();
         return true;
     }
@@ -113,7 +117,7 @@ public sealed class WheelControllerService : IDisposable
 
     private void StartLiveTimer()
     {
-        _liveTimer = new System.Timers.Timer(100) { AutoReset = true };
+        _liveTimer = new System.Timers.Timer(50) { AutoReset = true };
         _liveTimer.Elapsed += (_, _) => RequestLiveState();
         _liveTimer.Start();
     }

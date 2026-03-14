@@ -12,4 +12,7 @@ public class WheelSettings
     public bool InvertEncoder { get; set; } = false;
     public bool InvertMotor { get; set; } = false;
     public string FirmwareVersion { get; set; } = string.Empty;
+    public string ProductName { get; set; } = "EMC-compatible wheel";
+    public string ProfileName { get; set; } = "EMC-style serial setup";
+    public string UsbMode { get; set; } = "CDC config channel";
 }

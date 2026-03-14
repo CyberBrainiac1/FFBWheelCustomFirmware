@@ -3,8 +3,8 @@
 #include "EepromStorage.h"
 #include "EncoderReader.h"
 #include "WheelMath.h"
+#include "BuildVersion.h"
 
-#define FW_VERSION "1.1.0"
 #define SERIAL_BUF_SIZE 64
 
 static char cmdBuf[SERIAL_BUF_SIZE];
@@ -105,6 +105,9 @@ static void sendSettings() {
     Serial.print(F("INV_ENCODER="));    Serial.println(activeSettings.invertEncoder);
     Serial.print(F("INV_MOTOR="));      Serial.println(activeSettings.invertMotor);
     Serial.print(F("FW_VERSION="));     Serial.println(F(FW_VERSION));
+    Serial.println(F("PRODUCT_NAME=EMC-compatible wheel"));
+    Serial.println(F("PROFILE=EMC-style serial setup"));
+    Serial.println(F("USB_MODE=CDC config channel"));
     Serial.println(F("END_SETTINGS"));
 }
 

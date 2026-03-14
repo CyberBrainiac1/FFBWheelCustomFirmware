@@ -13,4 +13,10 @@
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="emc_utility_decompiled\**\*.cs" />
+    <EmbeddedResource Remove="emc_utility_decompiled\**" />
+    <None Remove="emc_utility_decompiled\**" />
+  </ItemGroup>
+
 </Project>

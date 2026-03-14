@@ -14,7 +14,7 @@ REM ============================================================
 
 setlocal
 
-set HEX=%~dp0build\LeonardoWheel.ino.hex
+set HEX=%~dp0build\leonardo-wheel.ino.hex
 set PORT=%1
 
 if "%PORT%"=="" (

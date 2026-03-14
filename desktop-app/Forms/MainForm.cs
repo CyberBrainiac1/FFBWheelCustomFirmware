@@ -1,546 +1,649 @@
+using FFBWheelConfig.Controls;
 using FFBWheelConfig.Models;
 using FFBWheelConfig.Services;
 
 namespace FFBWheelConfig.Forms;
 
-/// <summary>
-/// Main application window — compact, dark, EMC-style wheel configuration utility.
-/// Layout (top to bottom):
-///   1. Top bar      – COM port selector, Connect/Disconnect, firmware/status labels
-///   2. Steering     – large live-angle readout + steering range + Center button
-///   3. Force/Tuning – sliders for force, damping, friction, spring + invert checkboxes
-///   4. Bottom bar   – Read / Apply / Save / Reset buttons + status line
-/// </summary>
 public sealed class MainForm : Form
 {
-    // ── Service ──────────────────────────────────────────────────────────────
+    private const string BaseTitle = "DIY Wheel Config";
+
+    private static readonly Color RootBackColor = ColorTranslator.FromHtml("#202225");
+    private static readonly Color PanelBackColor = ColorTranslator.FromHtml("#2A2D31");
+    private static readonly Color PanelBorderColor = ColorTranslator.FromHtml("#3A3D42");
+    private static readonly Color ControlBackColor = ColorTranslator.FromHtml("#1F2124");
+    private static readonly Color ControlBorderColor = ColorTranslator.FromHtml("#4A4E55");
+    private static readonly Color ButtonBackColor = ColorTranslator.FromHtml("#3A3F46");
+    private static readonly Color ButtonBorderColor = ColorTranslator.FromHtml("#555B64");
+    private static readonly Color PrimaryButtonBackColor = ColorTranslator.FromHtml("#2F5F87");
+    private static readonly Color PrimaryButtonBorderColor = ColorTranslator.FromHtml("#4C83B1");
+    private static readonly Color DisabledButtonBackColor = ColorTranslator.FromHtml("#2B2E33");
+    private static readonly Color DisabledTextColor = ColorTranslator.FromHtml("#7E858D");
+    private static readonly Color MainTextColor = ColorTranslator.FromHtml("#E6E6E6");
+    private static readonly Color SecondaryTextColor = ColorTranslator.FromHtml("#C8CDD4");
+    private static readonly Color HelperTextColor = ColorTranslator.FromHtml("#9098A1");
+    private static readonly Color RawTextColor = ColorTranslator.FromHtml("#AAB1B9");
+    private static readonly Color AngleTextColor = ColorTranslator.FromHtml("#EAF6FF");
+    private static readonly Color SliderTrackColor = ColorTranslator.FromHtml("#1E2023");
+    private static readonly Color SliderFillColor = ColorTranslator.FromHtml("#3E89B8");
+
     private readonly WheelControllerService _service = new();
 
-    // ── Top-bar controls ────────────────────────────────────────────────────
     private ComboBox _cboPort = null!;
     private Button _btnRefresh = null!;
     private Button _btnConnect = null!;
     private Button _btnDisconnect = null!;
     private Label _lblFirmware = null!;
-    private Label _lblStatusDot = null!;
-    private Label _lblStatusText = null!;
-
-    // ── Steering-panel controls ──────────────────────────────────────────────
+    private Label _lblConnectionStatus = null!;
     private Label _lblAngle = null!;
     private Label _lblRawCounts = null!;
-    private TrackBar _sldRange = null!;
+    private FlatSlider _sldRange = null!;
     private NumericUpDown _nudRange = null!;
     private Button _btnCenter = null!;
+    private FlatSlider _sldForce = null!;
+    private NumericUpDown _nudForce = null!;
+    private FlatSlider _sldMinForce = null!;
+    private NumericUpDown _nudMinForce = null!;
+    private FlatSlider _sldDamping = null!;
+    private NumericUpDown _nudDamping = null!;
+    private FlatSlider _sldFriction = null!;
+    private NumericUpDown _nudFriction = null!;
+    private FlatSlider _sldSpring = null!;
+    private NumericUpDown _nudSpring = null!;
+    private CheckBox _chkInvertEncoder = null!;
+    private CheckBox _chkInvertMotor = null!;
+    private Button _btnRead = null!;
+    private Button _btnApply = null!;
+    private Button _btnSave = null!;
+    private Button _btnReset = null!;
+    private Label _lblStatusLine = null!;
 
-    // ── Settings-panel controls ──────────────────────────────────────────────
-    private TrackBar _sldForce = null!, _sldMinForce = null!, _sldDamping = null!,
-                     _sldFriction = null!, _sldSpring = null!;
-    private NumericUpDown _nudForce = null!, _nudMinForce = null!, _nudDamping = null!,
-                          _nudFriction = null!, _nudSpring = null!;
-    private CheckBox _chkInvertEncoder = null!, _chkInvertMotor = null!;
+    private bool _updatingControls;
+    private bool _isDirty;
 
-    // ── Bottom-bar controls ──────────────────────────────────────────────────
-    private Button _btnRead = null!, _btnApply = null!, _btnSave = null!, _btnReset = null!;
-    private Label _lblStatus = null!;
-
-    // ── Colour palette ────────────────────────────────────────────────────────
-    private static readonly Color BgDark   = Color.FromArgb(0x1E, 0x1E, 0x1E);
-    private static readonly Color BgPanel  = Color.FromArgb(0x2A, 0x2A, 0x2A);
-    private static readonly Color BgBar    = Color.FromArgb(0x22, 0x22, 0x22);
-    private static readonly Color BgCtrl   = Color.FromArgb(0x38, 0x38, 0x38);
-    private static readonly Color BgBtn    = Color.FromArgb(0x3C, 0x3C, 0x3C);
-    private static readonly Color BgAccent = Color.FromArgb(0x00, 0x7F, 0x8A);
-    private static readonly Color Accent   = Color.FromArgb(0x00, 0xBC, 0xD4);
-    private static readonly Color TextMain = Color.FromArgb(0xE0, 0xE0, 0xE0);
-    private static readonly Color TextDim  = Color.FromArgb(0x88, 0x88, 0x88);
-    private static readonly Color BorderC  = Color.FromArgb(0x44, 0x44, 0x44);
-
-    // ── Constructor ───────────────────────────────────────────────────────────
     public MainForm()
     {
         InitializeComponent();
         WireServiceEvents();
         RefreshPorts();
         SetConnected(false);
+        SetStatusLine("Ready");
+        SetDirty(false);
     }
-
-    // =========================================================================
-    // UI CONSTRUCTION
-    // =========================================================================
 
     private void InitializeComponent()
     {
         SuspendLayout();
 
-        // ── Form ──────────────────────────────────────────────────────────────
-        Text            = "FFB Wheel Config";
-        BackColor       = BgDark;
-        ForeColor       = TextMain;
-        ClientSize      = new Size(700, 532);
+        Text = BaseTitle;
+        BackColor = RootBackColor;
+        ForeColor = MainTextColor;
+        ClientSize = new Size(760, 540);
+        AutoScaleMode = AutoScaleMode.None;
+        Font = UiFont(10f);
         FormBorderStyle = FormBorderStyle.FixedSingle;
-        MaximizeBox     = false;
-        StartPosition   = FormStartPosition.CenterScreen;
-        Font            = new Font("Segoe UI", 9f);
+        MaximizeBox = false;
+        MinimizeBox = true;
+        StartPosition = FormStartPosition.CenterScreen;
 
-        // ── TOP BAR ──────────────────────────────────────────────────────────
-        var topBar = new Panel { Bounds = new Rectangle(0, 0, 700, 50), BackColor = BgBar };
+        var topBar = CreatePanel(new Rectangle(16, 12, 728, 58));
+        var steeringPanel = CreatePanel(new Rectangle(16, 80, 728, 190));
+        var settingsPanel = CreatePanel(new Rectangle(16, 280, 728, 170));
+        var bottomBar = CreatePanel(new Rectangle(16, 460, 728, 56));
 
-        var lblPort = Lbl("Port:", 8, 16, TextDim);
-        _cboPort = new ComboBox
-        {
-            Bounds        = new Rectangle(46, 13, 90, 24),
-            BackColor     = BgCtrl,
-            ForeColor     = TextMain,
-            FlatStyle     = FlatStyle.Flat,
-            DropDownStyle = ComboBoxStyle.DropDownList,
-        };
-        _btnRefresh    = Btn("↺",          141,  13, 28, 26);
-        _btnConnect    = Btn("Connect",    174,  13, 78, 26, Accent,   Color.Black);
-        _btnDisconnect = Btn("Disconnect", 257,  13, 90, 26);
-        _lblFirmware   = Lbl("Firmware: —", 370, 16, TextDim);
-        _lblStatusDot  = Lbl("●",          590, 16, Color.Gray);
-        _lblStatusDot.Font = new Font("Segoe UI", 10f);
-        _lblStatusText = Lbl("Disconnected", 606, 16, TextDim);
+        BuildTopBar(topBar);
+        BuildSteeringPanel(steeringPanel);
+        BuildSettingsPanel(settingsPanel);
+        BuildBottomBar(bottomBar);
 
-        topBar.Controls.AddRange(new Control[]
-            { lblPort, _cboPort, _btnRefresh, _btnConnect, _btnDisconnect,
-              _lblFirmware, _lblStatusDot, _lblStatusText });
+        Controls.AddRange(new Control[] { topBar, steeringPanel, settingsPanel, bottomBar });
 
-        // ── STEERING PANEL ───────────────────────────────────────────────────
-        var steeringPanel = new Panel
-            { Bounds = new Rectangle(8, 54, 684, 190), BackColor = BgPanel };
-
-        var lblSteeringHdr = Lbl("STEERING", 10, 7, Accent);
-        lblSteeringHdr.Font = new Font("Segoe UI", 8f, FontStyle.Bold);
-
-        // Large live-angle label — the centerpiece of the whole UI
-        _lblAngle = new Label
-        {
-            Text      = "—",
-            Bounds    = new Rectangle(60, 14, 440, 100),
-            TextAlign = ContentAlignment.MiddleCenter,
-            ForeColor = TextMain,
-            BackColor = Color.Transparent,
-            Font      = new Font("Segoe UI", 68f, FontStyle.Bold),
-        };
-
-        // Degree symbol label to the right of the big number, same row
-        var lblDegSymbol = new Label
-        {
-            Text      = "°",
-            Bounds    = new Rectangle(500, 56, 40, 40),
-            ForeColor = TextDim,
-            BackColor = Color.Transparent,
-            Font      = new Font("Segoe UI", 30f),
-        };
-
-        _lblRawCounts = new Label
-        {
-            Text      = "Raw: —",
-            Bounds    = new Rectangle(60, 116, 440, 16),
-            TextAlign = ContentAlignment.MiddleCenter,
-            ForeColor = TextDim,
-            BackColor = Color.Transparent,
-            Font      = new Font("Segoe UI", 8f),
-        };
-
-        // Steering-range row
-        var lblRangeHdr = Lbl("Range:", 10, 147);
-        _sldRange = new TrackBar
-        {
-            Bounds        = new Rectangle(66, 138, 408, 32),
-            Minimum       = 90,
-            Maximum       = 1800,
-            Value         = 900,
-            TickFrequency = 90,
-            BackColor     = BgPanel,
-            AutoSize      = false,
-        };
-        _nudRange = new NumericUpDown
-        {
-            Bounds      = new Rectangle(480, 143, 68, 22),
-            Minimum     = 90,
-            Maximum     = 1800,
-            Value       = 900,
-            BackColor   = BgCtrl,
-            ForeColor   = TextMain,
-            BorderStyle = BorderStyle.FixedSingle,
-        };
-        var lblRangeDeg = Lbl("°", 551, 146);
-        _btnCenter = Btn("Center", 572, 141, 80, 26);
-
-        steeringPanel.Controls.AddRange(new Control[]
-            { lblSteeringHdr, _lblAngle, lblDegSymbol, _lblRawCounts,
-              lblRangeHdr, _sldRange, _nudRange, lblRangeDeg, _btnCenter });
-
-        // ── FORCE & TUNING PANEL ──────────────────────────────────────────────
-        var tuningPanel = new Panel
-            { Bounds = new Rectangle(8, 250, 684, 200), BackColor = BgPanel };
-
-        var lblTuningHdr = Lbl("FORCE & TUNING", 10, 7, Accent);
-        lblTuningHdr.Font = new Font("Segoe UI", 8f, FontStyle.Bold);
-
-        // Row layout constants
-        const int LX = 10, SX = 120, SW = 300, NX = 425, NW = 54, CX = 490;
-        const int R0 = 26, RH = 32;
-
-        (_sldForce,    _nudForce)    = AddSettingRow(tuningPanel, "Overall Force", LX, SX, SW, NX, NW, R0 + RH * 0, 0, 100, 60);
-        (_sldMinForce, _nudMinForce) = AddSettingRow(tuningPanel, "Min Force",     LX, SX, SW, NX, NW, R0 + RH * 1, 0, 100,  5);
-        (_sldDamping,  _nudDamping)  = AddSettingRow(tuningPanel, "Damping",       LX, SX, SW, NX, NW, R0 + RH * 2, 0, 100, 10);
-        (_sldFriction, _nudFriction) = AddSettingRow(tuningPanel, "Friction",      LX, SX, SW, NX, NW, R0 + RH * 3, 0, 100,  4);
-        (_sldSpring,   _nudSpring)   = AddSettingRow(tuningPanel, "Spring",        LX, SX, SW, NX, NW, R0 + RH * 4, 0, 100, 15);
-
-        _chkInvertEncoder = new CheckBox
-        {
-            Text      = "Invert Encoder",
-            Bounds    = new Rectangle(CX, R0 + RH * 0, 150, 24),
-            ForeColor = TextMain,
-            BackColor = Color.Transparent,
-            FlatStyle = FlatStyle.Flat,
-        };
-        _chkInvertMotor = new CheckBox
-        {
-            Text      = "Invert Motor",
-            Bounds    = new Rectangle(CX, R0 + RH * 1, 150, 24),
-            ForeColor = TextMain,
-            BackColor = Color.Transparent,
-            FlatStyle = FlatStyle.Flat,
-        };
-
-        tuningPanel.Controls.AddRange(new Control[]
-            { lblTuningHdr, _chkInvertEncoder, _chkInvertMotor });
-
-        // ── BOTTOM BAR ────────────────────────────────────────────────────────
-        var bottomBar = new Panel
-            { Bounds = new Rectangle(0, 456, 700, 76), BackColor = BgBar };
-
-        _btnRead  = Btn("Read from Wheel", 8,   10, 132, 28);
-        _btnApply = Btn("Apply",          146,  10,  80, 28, BgAccent, Color.White);
-        _btnSave  = Btn("Save to Wheel",  232,  10, 118, 28, BgAccent, Color.White);
-        _btnReset = Btn("Reset Defaults", 356,  10, 120, 28);
-
-        _lblStatus = new Label
-        {
-            Text      = "Ready",
-            Bounds    = new Rectangle(8, 44, 680, 18),
-            ForeColor = TextDim,
-            BackColor = Color.Transparent,
-            Font      = new Font("Segoe UI", 8f),
-        };
-
-        bottomBar.Controls.AddRange(new Control[]
-            { _btnRead, _btnApply, _btnSave, _btnReset, _lblStatus });
-
-        // ── Assemble ─────────────────────────────────────────────────────────
-        Controls.AddRange(new Control[] { topBar, steeringPanel, tuningPanel, bottomBar });
+        Size = SizeFromClientSize(ClientSize);
+        MinimumSize = Size;
+        MaximumSize = Size;
 
         ResumeLayout(false);
     }
 
-    // ── Helper: add a labelled slider+NUD row to a parent panel ──────────────
-    private (TrackBar slider, NumericUpDown nud) AddSettingRow(
-        Panel parent, string label,
-        int lx, int sx, int sw, int nx, int nw,
-        int y, int min, int max, int val)
+    private void BuildTopBar(Panel parent)
     {
-        parent.Controls.Add(Lbl(label, lx, y + 5));
+        parent.Controls.Add(CreateLabel("COM Port", new Rectangle(12, 19, 64, 20), MainTextColor, 10f));
 
-        var sldr = new TrackBar
+        _cboPort = CreateComboBox(new Rectangle(82, 14, 110, 28));
+        _btnRefresh = CreateButton("Refresh", new Rectangle(204, 14, 72, 28), primary: false);
+        _btnConnect = CreateButton("Connect", new Rectangle(286, 14, 78, 28), primary: true);
+        _btnDisconnect = CreateButton("Disconnect", new Rectangle(374, 14, 88, 28), primary: false);
+        _lblFirmware = CreateLabel("Firmware: —", new Rectangle(492, 10, 220, 16), SecondaryTextColor, 9f);
+        _lblConnectionStatus = CreateLabel("Status: Disconnected", new Rectangle(492, 28, 220, 16), SecondaryTextColor, 9f);
+
+        parent.Controls.AddRange(new Control[]
         {
-            Bounds        = new Rectangle(sx, y, sw, 26),
-            Minimum       = min,
-            Maximum       = max,
-            Value         = val,
-            TickFrequency = 10,
-            BackColor     = BgPanel,
-            AutoSize      = false,
-        };
-
-        var nud = new NumericUpDown
-        {
-            Bounds      = new Rectangle(nx, y + 3, nw, 22),
-            Minimum     = min,
-            Maximum     = max,
-            Value       = val,
-            BackColor   = BgCtrl,
-            ForeColor   = TextMain,
-            BorderStyle = BorderStyle.FixedSingle,
-        };
-
-        parent.Controls.Add(sldr);
-        parent.Controls.Add(nud);
-        return (sldr, nud);
-    }
-
-    // ── Tiny factory helpers ──────────────────────────────────────────────────
-    private static Label Lbl(string text, int x, int y, Color? color = null)
-        => new Label
-        {
-            Text      = text,
-            Location  = new Point(x, y),
-            ForeColor = color ?? TextMain,
-            BackColor = Color.Transparent,
-            AutoSize  = true,
-        };
-
-    private static Button Btn(string text, int x, int y, int w, int h,
-                               Color? back = null, Color? fore = null)
-    {
-        var b = new Button
-        {
-            Text      = text,
-            Bounds    = new Rectangle(x, y, w, h),
-            BackColor = back ?? BgBtn,
-            ForeColor = fore ?? TextMain,
-            FlatStyle = FlatStyle.Flat,
-            Cursor    = Cursors.Hand,
-        };
-        b.FlatAppearance.BorderColor = BorderC;
-        b.FlatAppearance.BorderSize  = 1;
-        return b;
-    }
-
-    // =========================================================================
-    // EVENT WIRING
-    // =========================================================================
-
-    private void WireServiceEvents()
-    {
-        // Top-bar buttons
-        _btnRefresh.Click    += (_, _) => RefreshPorts();
-        _btnConnect.Click    += BtnConnect_Click;
-        _btnDisconnect.Click += BtnDisconnect_Click;
-
-        // Bottom-bar buttons
-        _btnRead.Click  += (_, _) => ReadSettings();
-        _btnApply.Click += (_, _) => ApplySettings();
-        _btnSave.Click  += (_, _) => SaveSettings();
-        _btnReset.Click += (_, _) => ResetDefaults();
-        _btnCenter.Click += (_, _) => SetCenter();
-
-        // Range slider ↔ NUD
-        LinkSliderNud(_sldRange, _nudRange, 90, 1800);
-
-        // Force/tuning sliders ↔ NUDs
-        LinkSliderNud(_sldForce,    _nudForce,    0, 100);
-        LinkSliderNud(_sldMinForce, _nudMinForce, 0, 100);
-        LinkSliderNud(_sldDamping,  _nudDamping,  0, 100);
-        LinkSliderNud(_sldFriction, _nudFriction, 0, 100);
-        LinkSliderNud(_sldSpring,   _nudSpring,   0, 100);
-
-        // Service events — all must be marshalled to the UI thread
-        _service.SettingsUpdated  += s   => SafeInvoke(() => LoadSettingsIntoUI(s));
-        _service.LiveAngleUpdated += ang => SafeInvoke(() => _lblAngle.Text = $"{ang:F0}");
-        _service.RawCountsUpdated += cnt => SafeInvoke(() => _lblRawCounts.Text = $"Raw: {cnt}");
-        _service.Disconnected     += ()  => SafeInvoke(() =>
-        {
-            SetConnected(false);
-            SetStatus("Device disconnected", Color.OrangeRed);
+            _cboPort,
+            _btnRefresh,
+            _btnConnect,
+            _btnDisconnect,
+            _lblFirmware,
+            _lblConnectionStatus
         });
     }
 
-    private static void LinkSliderNud(TrackBar s, NumericUpDown n, int min, int max)
+    private void BuildSteeringPanel(Panel parent)
     {
-        s.ValueChanged += (_, _) =>
+        parent.Controls.Add(CreateLabel("Steering", new Rectangle(12, 8, 80, 18), MainTextColor, 10f, bold: true));
+
+        _lblAngle = CreateLabel("0°", new Rectangle(20, 36, 300, 88), AngleTextColor, 52f, bold: true);
+        _lblAngle.TextAlign = ContentAlignment.MiddleLeft;
+        _lblRawCounts = CreateLabel("Raw Counts: 0", new Rectangle(24, 128, 240, 18), RawTextColor, 9f);
+
+        parent.Controls.Add(_lblAngle);
+        parent.Controls.Add(_lblRawCounts);
+
+        parent.Controls.Add(CreateLabel("Steering Range", new Rectangle(356, 40, 120, 20), MainTextColor, 10f));
+
+        _sldRange = CreateSlider(new Rectangle(356, 70, 240, 28), 90, 1440, 900);
+        _nudRange = CreateNumeric(new Rectangle(610, 68, 72, 28), 90, 1440, 900, HorizontalAlignment.Center);
+        _btnCenter = CreateButton("Set Center", new Rectangle(356, 118, 118, 30), primary: false);
+
+        parent.Controls.Add(_sldRange);
+        parent.Controls.Add(_nudRange);
+        parent.Controls.Add(CreateLabel("°", new Rectangle(688, 72, 18, 20), SecondaryTextColor, 10f));
+        parent.Controls.Add(_btnCenter);
+        parent.Controls.Add(CreateLabel(
+            "Uses same processed steering value as device output",
+            new Rectangle(356, 156, 320, 16),
+            HelperTextColor,
+            8f));
+    }
+
+    private void BuildSettingsPanel(Panel parent)
+    {
+        parent.Controls.Add(CreateLabel("Force / Settings", new Rectangle(12, 8, 120, 18), MainTextColor, 10f, bold: true));
+
+        (_sldForce, _nudForce) = AddSettingRow(parent, "Overall Force", 34, 0, 100, 60);
+        (_sldMinForce, _nudMinForce) = AddSettingRow(parent, "Minimum Force", 60, 0, 20, 5);
+        (_sldDamping, _nudDamping) = AddSettingRow(parent, "Damping", 86, 0, 100, 10);
+        (_sldFriction, _nudFriction) = AddSettingRow(parent, "Friction", 112, 0, 100, 4);
+        (_sldSpring, _nudSpring) = AddSettingRow(parent, "Spring", 138, 0, 100, 15);
+
+        _chkInvertEncoder = CreateCheckBox("Invert Encoder", new Rectangle(470, 50, 160, 24));
+        _chkInvertMotor = CreateCheckBox("Invert Motor", new Rectangle(470, 84, 160, 24));
+
+        parent.Controls.Add(_chkInvertEncoder);
+        parent.Controls.Add(_chkInvertMotor);
+    }
+
+    private void BuildBottomBar(Panel parent)
+    {
+        _btnRead = CreateButton("Read from Wheel", new Rectangle(12, 14, 118, 28), primary: false);
+        _btnApply = CreateButton("Apply", new Rectangle(140, 14, 72, 28), primary: true);
+        _btnSave = CreateButton("Save to Wheel", new Rectangle(222, 14, 102, 28), primary: false);
+        _btnReset = CreateButton("Reset Defaults", new Rectangle(334, 14, 108, 28), primary: false);
+        _lblStatusLine = CreateLabel("Ready", new Rectangle(460, 18, 248, 18), SecondaryTextColor, 9f);
+        _lblStatusLine.TextAlign = ContentAlignment.MiddleRight;
+        _lblStatusLine.AutoEllipsis = true;
+
+        parent.Controls.AddRange(new Control[]
         {
-            int v = Math.Clamp(s.Value, min, max);
-            if (n.Value != v) n.Value = v;
+            _btnRead,
+            _btnApply,
+            _btnSave,
+            _btnReset,
+            _lblStatusLine
+        });
+    }
+
+    private (FlatSlider slider, NumericUpDown numeric) AddSettingRow(Panel parent, string labelText, int y, int min, int max, int value)
+    {
+        parent.Controls.Add(CreateLabel(labelText, new Rectangle(16, y, 110, 20), MainTextColor, 10f));
+
+        var slider = CreateSlider(new Rectangle(132, y - 2, 220, 24), min, max, value);
+        var numeric = CreateNumeric(new Rectangle(364, y - 4, 54, 28), min, max, value, HorizontalAlignment.Center);
+
+        parent.Controls.Add(slider);
+        parent.Controls.Add(numeric);
+
+        return (slider, numeric);
+    }
+
+    private static Panel CreatePanel(Rectangle bounds)
+    {
+        var panel = new Panel
+        {
+            Bounds = bounds,
+            BackColor = PanelBackColor
         };
-        n.ValueChanged += (_, _) =>
+
+        panel.Paint += (_, e) =>
         {
-            int v = Math.Clamp((int)n.Value, min, max);
-            if (s.Value != v) s.Value = v;
+            using var pen = new Pen(PanelBorderColor);
+            e.Graphics.DrawRectangle(pen, 0, 0, panel.Width - 1, panel.Height - 1);
+        };
+
+        return panel;
+    }
+
+    private static Label CreateLabel(string text, Rectangle bounds, Color color, float pixelSize, bool bold = false)
+    {
+        return new Label
+        {
+            Text = text,
+            Bounds = bounds,
+            ForeColor = color,
+            BackColor = Color.Transparent,
+            Font = UiFont(pixelSize, bold),
+            TextAlign = ContentAlignment.MiddleLeft
+        };
+    }
+
+    private static ComboBox CreateComboBox(Rectangle bounds)
+    {
+        var combo = new ComboBox
+        {
+            Bounds = bounds,
+            DrawMode = DrawMode.OwnerDrawFixed,
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            FlatStyle = FlatStyle.Flat,
+            BackColor = ControlBackColor,
+            ForeColor = MainTextColor,
+            Font = UiFont(10f)
+        };
+
+        combo.DrawItem += (_, e) =>
+        {
+            e.DrawBackground();
+            using var backBrush = new SolidBrush(ControlBackColor);
+            using var selectBrush = new SolidBrush(PrimaryButtonBackColor);
+            using var textBrush = new SolidBrush(MainTextColor);
+
+            var back = (e.State & DrawItemState.Selected) == DrawItemState.Selected ? selectBrush : backBrush;
+            e.Graphics.FillRectangle(back, e.Bounds);
+
+            string text = e.Index >= 0
+                ? combo.Items[e.Index]?.ToString() ?? string.Empty
+                : combo.Text;
+
+            e.Graphics.DrawString(text, combo.Font, textBrush, e.Bounds.X + 4, e.Bounds.Y + 5);
+
+            e.DrawFocusRectangle();
+        };
+
+        return combo;
+    }
+
+    private static Button CreateButton(string text, Rectangle bounds, bool primary)
+    {
+        Color backColor = primary ? PrimaryButtonBackColor : ButtonBackColor;
+        Color borderColor = primary ? PrimaryButtonBorderColor : ButtonBorderColor;
+
+        var button = new Button
+        {
+            Text = text,
+            Bounds = bounds,
+            BackColor = backColor,
+            ForeColor = Color.White,
+            FlatStyle = FlatStyle.Flat,
+            Font = UiFont(10f),
+            UseVisualStyleBackColor = false
+        };
+
+        button.FlatAppearance.BorderSize = 1;
+        button.FlatAppearance.BorderColor = borderColor;
+        button.FlatAppearance.MouseOverBackColor = backColor;
+        button.FlatAppearance.MouseDownBackColor = ControlPaint.Dark(backColor, 0.08f);
+
+        void ApplyVisualState()
+        {
+            button.BackColor = button.Enabled ? backColor : DisabledButtonBackColor;
+            button.ForeColor = button.Enabled ? (primary ? Color.White : MainTextColor) : DisabledTextColor;
+        }
+
+        button.EnabledChanged += (_, _) => ApplyVisualState();
+        ApplyVisualState();
+        return button;
+    }
+
+    private static NumericUpDown CreateNumeric(Rectangle bounds, int min, int max, int value, HorizontalAlignment alignment)
+    {
+        return new NumericUpDown
+        {
+            Bounds = bounds,
+            Minimum = min,
+            Maximum = max,
+            Value = value,
+            TextAlign = alignment,
+            BorderStyle = BorderStyle.FixedSingle,
+            BackColor = ControlBackColor,
+            ForeColor = MainTextColor,
+            Font = UiFont(10f)
+        };
+    }
+
+    private static CheckBox CreateCheckBox(string text, Rectangle bounds)
+    {
+        var checkBox = new CheckBox
+        {
+            Text = text,
+            Bounds = bounds,
+            BackColor = Color.Transparent,
+            ForeColor = MainTextColor,
+            FlatStyle = FlatStyle.Flat,
+            Font = UiFont(10f)
+        };
+
+        checkBox.FlatAppearance.BorderColor = ControlBorderColor;
+        checkBox.FlatAppearance.CheckedBackColor = PanelBackColor;
+        checkBox.FlatAppearance.MouseDownBackColor = PanelBackColor;
+        checkBox.FlatAppearance.MouseOverBackColor = PanelBackColor;
+        return checkBox;
+    }
+
+    private static FlatSlider CreateSlider(Rectangle bounds, int min, int max, int value)
+    {
+        return new FlatSlider
+        {
+            Bounds = bounds,
+            Minimum = min,
+            Maximum = max,
+            Value = value,
+            TrackColor = SliderTrackColor,
+            FillColor = SliderFillColor,
+            ThumbColor = MainTextColor,
+            BorderColor = ControlBorderColor
+        };
+    }
+
+    private static Font UiFont(float pixelSize, bool bold = false)
+    {
+        return new Font("Segoe UI", pixelSize, bold ? FontStyle.Bold : FontStyle.Regular, GraphicsUnit.Pixel);
+    }
+
+    private void WireServiceEvents()
+    {
+        _btnRefresh.Click += (_, _) => RefreshPorts();
+        _btnConnect.Click += BtnConnect_Click;
+        _btnDisconnect.Click += BtnDisconnect_Click;
+        _btnRead.Click += (_, _) => ReadSettings();
+        _btnApply.Click += (_, _) => ApplySettings();
+        _btnSave.Click += (_, _) => SaveSettings();
+        _btnReset.Click += (_, _) => ResetDefaults();
+        _btnCenter.Click += (_, _) => SetCenter();
+
+        LinkSliderAndNumeric(_sldRange, _nudRange, 90, 1440);
+        LinkSliderAndNumeric(_sldForce, _nudForce, 0, 100);
+        LinkSliderAndNumeric(_sldMinForce, _nudMinForce, 0, 20);
+        LinkSliderAndNumeric(_sldDamping, _nudDamping, 0, 100);
+        LinkSliderAndNumeric(_sldFriction, _nudFriction, 0, 100);
+        LinkSliderAndNumeric(_sldSpring, _nudSpring, 0, 100);
+
+        _chkInvertEncoder.CheckedChanged += (_, _) => MarkDirty();
+        _chkInvertMotor.CheckedChanged += (_, _) => MarkDirty();
+
+        _service.SettingsUpdated += settings => SafeInvoke(() => LoadSettingsIntoUi(settings));
+        _service.LiveAngleUpdated += angle => SafeInvoke(() => _lblAngle.Text = $"{angle:F0}°");
+        _service.RawCountsUpdated += counts => SafeInvoke(() => _lblRawCounts.Text = $"Raw Counts: {counts}");
+        _service.Disconnected += () => SafeInvoke(() =>
+        {
+            SetConnected(false);
+            SetStatusLine("Device disconnected");
+        });
+    }
+
+    private void LinkSliderAndNumeric(FlatSlider slider, NumericUpDown numeric, int min, int max)
+    {
+        slider.ValueChanged += (_, _) =>
+        {
+            if (_updatingControls)
+                return;
+
+            _updatingControls = true;
+            numeric.Value = Math.Clamp(slider.Value, min, max);
+            _updatingControls = false;
+            MarkDirty();
+        };
+
+        numeric.ValueChanged += (_, _) =>
+        {
+            if (_updatingControls)
+                return;
+
+            _updatingControls = true;
+            slider.Value = Math.Clamp((int)numeric.Value, min, max);
+            _updatingControls = false;
+            MarkDirty();
         };
     }
 
     private void SafeInvoke(Action action)
     {
-        if (IsDisposed) return;
-        if (InvokeRequired) BeginInvoke(action);
-        else action();
-    }
+        if (IsDisposed)
+            return;
 
-    // =========================================================================
-    // BUTTON HANDLERS
-    // =========================================================================
+        if (InvokeRequired)
+            BeginInvoke(action);
+        else
+            action();
+    }
 
     private void RefreshPorts()
     {
-        string? current = _cboPort.SelectedItem?.ToString();
+        string? selected = _cboPort.SelectedItem?.ToString();
         _cboPort.Items.Clear();
-        var ports = WheelControllerService.GetAvailablePorts();
+
+        string[] ports = WheelControllerService.GetAvailablePorts();
         if (ports.Length == 0)
         {
-            _cboPort.Items.Add("(no ports)");
+            _cboPort.Items.Add("(none)");
             _cboPort.SelectedIndex = 0;
+            return;
         }
-        else
-        {
-            foreach (var p in ports) _cboPort.Items.Add(p);
-            _cboPort.SelectedItem = current != null && _cboPort.Items.Contains(current)
-                ? current
-                : _cboPort.Items[0];
-        }
+
+        foreach (string port in ports)
+            _cboPort.Items.Add(port);
+
+        _cboPort.SelectedItem = selected != null && _cboPort.Items.Contains(selected)
+            ? selected
+            : _cboPort.Items[0];
     }
 
-    private void BtnConnect_Click(object? sender, EventArgs e)
+    private async void BtnConnect_Click(object? sender, EventArgs e)
     {
-        if (_cboPort.SelectedItem?.ToString() is not string port
-            || port.StartsWith('(')) return;
+        if (_cboPort.SelectedItem?.ToString() is not string port || port.StartsWith('('))
+            return;
 
-        SetStatus($"Connecting to {port}…", TextDim);
+        _btnConnect.Enabled = false;
+        _lblConnectionStatus.Text = "Status: Connecting...";
+        SetStatusLine($"Connecting to {port}");
 
-        if (_service.Connect(port))
+        bool connected = await Task.Run(() => _service.Connect(port));
+
+        if (!connected)
         {
-            SetConnected(true);
-            SetStatus($"Connected to {port}", Accent);
-            _service.ReadSettings();
+            SetConnected(false);
+            SetStatusLine($"Unable to connect to {port}");
+            return;
         }
-        else
-        {
-            SetStatus($"Failed to connect to {port}", Color.OrangeRed);
-        }
+
+        SetConnected(true);
+        SetStatusLine($"Connected to {port}");
+        _service.ReadSettings();
     }
 
     private void BtnDisconnect_Click(object? sender, EventArgs e)
     {
         _service.Disconnect();
         SetConnected(false);
-        SetStatus("Disconnected", TextDim);
+        SetStatusLine("Device disconnected");
     }
 
     private void ReadSettings()
     {
-        if (!_service.IsConnected) return;
-        SetStatus("Reading settings…", TextDim);
-        if (_service.ReadSettings())
-            SetStatus("Waiting for settings…", TextDim);
-        else
-            SetStatus("Read failed", Color.OrangeRed);
+        if (!_service.IsConnected)
+            return;
+
+        SetStatusLine("Reading from wheel");
+        if (!_service.ReadSettings())
+            SetStatusLine("Invalid response");
     }
 
     private void ApplySettings()
     {
-        if (!_service.IsConnected) return;
-        SetStatus("Applying settings…", TextDim);
+        if (!_service.IsConnected)
+            return;
+
         if (_service.ApplySettings(GatherSettings()))
-            SetStatus("Settings applied", Accent);
+            SetStatusLine("Settings applied");
         else
-            SetStatus("Apply failed", Color.OrangeRed);
+            SetStatusLine("Invalid response");
     }
 
     private void SaveSettings()
     {
-        if (!_service.IsConnected) return;
-        SetStatus("Saving to EEPROM…", TextDim);
+        if (!_service.IsConnected)
+            return;
+
         if (_service.SaveSettings())
-            SetStatus("Saved to EEPROM", Accent);
+        {
+            SetStatusLine("EEPROM saved");
+            SetDirty(false);
+        }
         else
-            SetStatus("Save failed", Color.OrangeRed);
+        {
+            SetStatusLine("Invalid response");
+        }
     }
 
     private void ResetDefaults()
     {
-        if (!_service.IsConnected) return;
-        SetStatus("Resetting to defaults…", TextDim);
+        if (!_service.IsConnected)
+            return;
+
+        var result = MessageBox.Show(
+            this,
+            "Reset all settings to defaults?",
+            BaseTitle,
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Question,
+            MessageBoxDefaultButton.Button2);
+
+        if (result != DialogResult.Yes)
+            return;
+
         if (_service.ResetDefaults())
-            SetStatus("Defaults loaded — waiting for settings…", TextDim);
+            SetStatusLine("Defaults restored");
         else
-            SetStatus("Reset failed", Color.OrangeRed);
+            SetStatusLine("Invalid response");
     }
 
     private void SetCenter()
     {
-        if (!_service.IsConnected) return;
-        SetStatus("Setting wheel center…", TextDim);
+        if (!_service.IsConnected)
+            return;
+
         if (_service.SetCenter())
-            SetStatus("Center set", Accent);
+            SetStatusLine("Center set");
         else
-            SetStatus("Center failed", Color.OrangeRed);
+            SetStatusLine("Invalid response");
     }
 
-    // =========================================================================
-    // UI STATE HELPERS
-    // =========================================================================
+    private void LoadSettingsIntoUi(WheelSettings settings)
+    {
+        _updatingControls = true;
+        _sldRange.Value = Math.Clamp(settings.SteeringRange, 90, 1440);
+        _nudRange.Value = Math.Clamp(settings.SteeringRange, 90, 1440);
+        _sldForce.Value = Math.Clamp(settings.OverallForce, 0, 100);
+        _nudForce.Value = Math.Clamp(settings.OverallForce, 0, 100);
+        _sldMinForce.Value = Math.Clamp(settings.MinimumForce, 0, 20);
+        _nudMinForce.Value = Math.Clamp(settings.MinimumForce, 0, 20);
+        _sldDamping.Value = Math.Clamp(settings.Damping, 0, 100);
+        _nudDamping.Value = Math.Clamp(settings.Damping, 0, 100);
+        _sldFriction.Value = Math.Clamp(settings.Friction, 0, 100);
+        _nudFriction.Value = Math.Clamp(settings.Friction, 0, 100);
+        _sldSpring.Value = Math.Clamp(settings.Spring, 0, 100);
+        _nudSpring.Value = Math.Clamp(settings.Spring, 0, 100);
+        _chkInvertEncoder.Checked = settings.InvertEncoder;
+        _chkInvertMotor.Checked = settings.InvertMotor;
+        _updatingControls = false;
+
+        _lblFirmware.Text = string.IsNullOrWhiteSpace(settings.FirmwareVersion)
+            ? "Firmware: —"
+            : $"Firmware: {settings.FirmwareVersion}";
+
+        SetDirty(false);
+        SetStatusLine("Ready");
+    }
+
+    private WheelSettings GatherSettings()
+    {
+        return new WheelSettings
+        {
+            SteeringRange = (int)_nudRange.Value,
+            OverallForce = (int)_nudForce.Value,
+            MinimumForce = (int)_nudMinForce.Value,
+            Damping = (int)_nudDamping.Value,
+            Friction = (int)_nudFriction.Value,
+            Spring = (int)_nudSpring.Value,
+            InvertEncoder = _chkInvertEncoder.Checked,
+            InvertMotor = _chkInvertMotor.Checked
+        };
+    }
 
     private void SetConnected(bool connected)
     {
-        _btnConnect.Enabled    = !connected;
-        _btnDisconnect.Enabled =  connected;
-        _btnRead.Enabled  = connected;
-        _btnApply.Enabled = connected;
-        _btnSave.Enabled  = connected;
-        _btnReset.Enabled = connected;
-        _btnCenter.Enabled = connected;
-        _sldRange.Enabled  = connected;
-        _nudRange.Enabled  = connected;
-        _sldForce.Enabled    = connected; _nudForce.Enabled    = connected;
-        _sldMinForce.Enabled = connected; _nudMinForce.Enabled = connected;
-        _sldDamping.Enabled  = connected; _nudDamping.Enabled  = connected;
-        _sldFriction.Enabled = connected; _nudFriction.Enabled = connected;
-        _sldSpring.Enabled   = connected; _nudSpring.Enabled   = connected;
-        _chkInvertEncoder.Enabled = connected;
-        _chkInvertMotor.Enabled   = connected;
+        _btnConnect.Enabled = !connected;
+        _btnDisconnect.Enabled = connected;
 
-        if (connected)
+        bool settingsEnabled = connected;
+        _btnRead.Enabled = settingsEnabled;
+        _btnApply.Enabled = settingsEnabled;
+        _btnSave.Enabled = settingsEnabled;
+        _btnReset.Enabled = settingsEnabled;
+        _sldRange.Enabled = settingsEnabled;
+        _nudRange.Enabled = settingsEnabled;
+        _btnCenter.Enabled = settingsEnabled;
+        _sldForce.Enabled = settingsEnabled;
+        _nudForce.Enabled = settingsEnabled;
+        _sldMinForce.Enabled = settingsEnabled;
+        _nudMinForce.Enabled = settingsEnabled;
+        _sldDamping.Enabled = settingsEnabled;
+        _nudDamping.Enabled = settingsEnabled;
+        _sldFriction.Enabled = settingsEnabled;
+        _nudFriction.Enabled = settingsEnabled;
+        _sldSpring.Enabled = settingsEnabled;
+        _nudSpring.Enabled = settingsEnabled;
+        _chkInvertEncoder.Enabled = settingsEnabled;
+        _chkInvertMotor.Enabled = settingsEnabled;
+
+        _lblConnectionStatus.Text = connected ? "Status: Connected" : "Status: Disconnected";
+
+        if (!connected)
         {
-            _lblStatusDot.ForeColor  = Accent;
-            _lblStatusText.Text      = "Connected";
-            _lblStatusText.ForeColor = Accent;
-        }
-        else
-        {
-            _lblStatusDot.ForeColor  = Color.Gray;
-            _lblStatusText.Text      = "Disconnected";
-            _lblStatusText.ForeColor = TextDim;
-            _lblAngle.Text           = "—";
-            _lblRawCounts.Text       = "Raw: —";
-            _lblFirmware.Text        = "Firmware: —";
+            _lblAngle.Text = "0°";
+            _lblRawCounts.Text = "Raw Counts: 0";
+            _lblFirmware.Text = "Firmware: —";
         }
     }
 
-    private void LoadSettingsIntoUI(WheelSettings s)
+    private void SetStatusLine(string message)
     {
-        SafeSetSliderNud(_sldRange,     _nudRange,     Math.Clamp(s.SteeringRange,  90, 1800));
-        SafeSetSliderNud(_sldForce,     _nudForce,     Math.Clamp(s.OverallForce,    0,  100));
-        SafeSetSliderNud(_sldMinForce,  _nudMinForce,  Math.Clamp(s.MinimumForce,    0,  100));
-        SafeSetSliderNud(_sldDamping,   _nudDamping,   Math.Clamp(s.Damping,         0,  100));
-        SafeSetSliderNud(_sldFriction,  _nudFriction,  Math.Clamp(s.Friction,        0,  100));
-        SafeSetSliderNud(_sldSpring,    _nudSpring,    Math.Clamp(s.Spring,          0,  100));
-        _chkInvertEncoder.Checked = s.InvertEncoder;
-        _chkInvertMotor.Checked   = s.InvertMotor;
-        if (!string.IsNullOrEmpty(s.FirmwareVersion))
-            _lblFirmware.Text = $"Firmware: {s.FirmwareVersion}";
-        SetStatus("Settings loaded", TextMain);
+        _lblStatusLine.Text = message;
     }
 
-    private static void SafeSetSliderNud(TrackBar sldr, NumericUpDown nud, int value)
+    private void MarkDirty()
     {
-        if (sldr.Value != value) sldr.Value = value;
-        if (nud.Value  != value) nud.Value  = value;
+        if (_updatingControls)
+            return;
+
+        SetDirty(true);
     }
 
-    private WheelSettings GatherSettings() => new()
+    private void SetDirty(bool dirty)
     {
-        OverallForce   = (int)_nudForce.Value,
-        MinimumForce   = (int)_nudMinForce.Value,
-        Damping        = (int)_nudDamping.Value,
-        Friction       = (int)_nudFriction.Value,
-        Spring         = (int)_nudSpring.Value,
-        SteeringRange  = (int)_nudRange.Value,
-        InvertEncoder  = _chkInvertEncoder.Checked,
-        InvertMotor    = _chkInvertMotor.Checked,
-    };
+        if (_isDirty == dirty)
+            return;
 
-    private void SetStatus(string msg, Color? color = null)
-    {
-        _lblStatus.Text      = msg;
-        _lblStatus.ForeColor = color ?? TextDim;
+        _isDirty = dirty;
+        Text = dirty ? $"{BaseTitle} *" : BaseTitle;
     }
-
-    // =========================================================================
-    // LIFECYCLE
-    // =========================================================================
 
     protected override void OnFormClosed(FormClosedEventArgs e)
     {

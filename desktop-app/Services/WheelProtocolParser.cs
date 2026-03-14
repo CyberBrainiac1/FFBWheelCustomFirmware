@@ -106,6 +106,12 @@ public class WheelProtocolParser
             s.InvertMotor = v == "1";
         if (dict.TryGetValue("FW_VERSION", out v))
             s.FirmwareVersion = v;
+        if (dict.TryGetValue("PRODUCT_NAME", out v) && !string.IsNullOrWhiteSpace(v))
+            s.ProductName = v;
+        if (dict.TryGetValue("PROFILE", out v) && !string.IsNullOrWhiteSpace(v))
+            s.ProfileName = v;
+        if (dict.TryGetValue("USB_MODE", out v) && !string.IsNullOrWhiteSpace(v))
+            s.UsbMode = v;
 
         return s;
     }

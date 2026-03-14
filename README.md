@@ -2,12 +2,13 @@
 
 Everything you need to build and configure a USB force-feedback steering wheel.
 
-| Folder | What it is |
-|---|---|
-| **desktop-app/** | Windows configuration utility (C# / WinForms / .NET 8) |
-| **firmware/leonardo-wheel/** | Arduino Leonardo firmware (encoder + motor + serial config) |
-| **firmware/secondary-controller/** | Optional second controller template (pedals / buttons) |
-| **ui-preview/** | Browser preview of the desktop UI (works on Chromebook) |
+| Folder                             | What it is                                                  |
+| ---------------------------------- | ----------------------------------------------------------- |
+| **desktop-app/**                   | Windows configuration utility (C# / WinForms / .NET 8)      |
+| **firmware/leonardo-wheel/**       | Arduino Leonardo firmware (HID FFB wheel + serial config)    |
+| **firmware/third_party/**          | Vendored Arduino libraries required by the wheel firmware    |
+| **firmware/secondary-controller/** | Optional second controller template (pedals / buttons)      |
+| **ui-preview/**                    | Browser preview of the desktop UI (works on Chromebook)     |
 
 ---
 
@@ -31,11 +32,13 @@ Everything you need to build and configure a USB force-feedback steering wheel.
 
 ---
 
-## Quick Start
+## Quick start
 
-### Step 1 - Install prerequisites
+### Before cloning — install prerequisites
 
-**Windows** (run each line in a Command Prompt or PowerShell):
+> **Already have the repo cloned?** Skip ahead to [After cloning](#after-cloning--build-and-flash).
+
+**Windows** (run each line in Command Prompt or PowerShell):
 
 ```
 winget install Git.Git
@@ -43,7 +46,7 @@ winget install ArduinoSA.CLI
 winget install Microsoft.DotNet.SDK.8
 ```
 
-After those finish, open a **new** terminal so the updated PATH takes effect, then install the AVR board core:
+Close and reopen your terminal so the new tools are on your PATH, then:
 
 ```
 arduino-cli core update-index
@@ -53,18 +56,16 @@ arduino-cli core install arduino:avr
 **Linux / macOS:**
 
 ```
-# arduino-cli
+sudo apt install git              # or: brew install git
 curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
 sudo mv bin/arduino-cli /usr/local/bin/
 arduino-cli core update-index
 arduino-cli core install arduino:avr
-
-# .NET 8 SDK - https://dotnet.microsoft.com/en-us/download/dotnet/8.0
 ```
 
----
+For .NET 8 SDK on Linux/macOS: https://dotnet.microsoft.com/en-us/download/dotnet/8.0
 
-### Step 2 - Download this repository
+Then clone the repo:
 
 ```
 git clone https://github.com/CyberBrainiac1/FFBWheelCustomFirmware.git
@@ -73,27 +74,33 @@ cd FFBWheelCustomFirmware
 
 ---
 
-### Step 3 - Build the firmware
+### After cloning — build and flash
+
+#### Step 1 — Compile the firmware
 
 **Windows:**
 
 ```
-arduino-cli compile --fqbn arduino:avr:leonardo --output-dir firmware\leonardo-wheel\build firmware\leonardo-wheel
+arduino-cli compile --fqbn arduino:avr:leonardo --library firmware\third_party\ArduinoJoystickWithFFBLibrary --output-dir firmware\leonardo-wheel\build firmware\leonardo-wheel
 ```
 
 **Linux / macOS:**
 
 ```
-arduino-cli compile --fqbn arduino:avr:leonardo --output-dir firmware/leonardo-wheel/build firmware/leonardo-wheel
+arduino-cli compile --fqbn arduino:avr:leonardo --library firmware/third_party/ArduinoJoystickWithFFBLibrary --output-dir firmware/leonardo-wheel/build firmware/leonardo-wheel
 ```
 
-You should see a success message and a `.hex` file in `firmware/leonardo-wheel/build/`.
+This produces `firmware/leonardo-wheel/build/leonardo-wheel.ino.hex`.
 
----
+#### Step 2 — Flash the firmware
 
-### Step 4 - Flash the firmware
+Plug in your Arduino Leonardo via USB. Find its port:
 
-Plug in your Arduino Leonardo via USB. Run `arduino-cli board list` to find the port (e.g. `COM4` on Windows, `/dev/ttyACM0` on Linux).
+```
+arduino-cli board list
+```
+
+Then flash (replace `COM4` / `/dev/ttyACM0` with your actual port):
 
 **Windows:**
 
@@ -107,20 +114,14 @@ arduino-cli upload -p COM4 --fqbn arduino:avr:leonardo --input-dir firmware\leon
 arduino-cli upload -p /dev/ttyACM0 --fqbn arduino:avr:leonardo --input-dir firmware/leonardo-wheel/build
 ```
 
-Replace `COM4` / `/dev/ttyACM0` with your actual port.
-
 > **Tip:** If the upload fails, double-press the reset button on the Leonardo to enter the bootloader, then immediately re-run the upload command.
 
----
-
-### Step 5 - Build and run the desktop app
+#### Step 3 — Build and run the desktop app
 
 ```
 dotnet restore desktop-app/FFBWheelConfig.csproj
 dotnet build desktop-app/FFBWheelConfig.csproj --configuration Release
 ```
-
-Then launch it:
 
 **Windows:**
 
@@ -128,15 +129,40 @@ Then launch it:
 desktop-app\bin\Release\net8.0-windows\FFBWheelConfig.exe
 ```
 
-Or use `dotnet run`:
+**Linux / macOS:**
 
 ```
 dotnet run --project desktop-app/FFBWheelConfig.csproj --configuration Release
 ```
 
----
+#### Step 3A — Create a versioned release package
 
-### Step 6 - Connect and configure
+If you want a new numbered build every time, use the root release script instead of running the app/firmware builds separately.
+
+**Windows:**
+
+```
+build_versioned_release.bat
+```
+
+This will:
+- increment the next `1.2.x` version
+- stamp that version into the firmware response string
+- publish the desktop app as a Windows `.exe`
+- build the Leonardo `.hex`
+- create a new folder under `versions/<version>/`
+
+Example output:
+
+```
+versions/1.2.1/app/FFBWheelConfig.exe
+versions/1.2.1/firmware/leonardo-wheel.ino.hex
+versions/1.2.1/firmware/leonardo-wheel.ino.with_bootloader.hex
+versions/1.2.1/build-info.json
+versions/latest.txt
+```
+
+#### Step 4 — Connect and configure
 
 1. Plug in the Arduino Leonardo via USB.
 2. Open the desktop app.
@@ -147,17 +173,9 @@ dotnet run --project desktop-app/FFBWheelConfig.csproj --configuration Release
 7. Click **Apply** to send settings (active until power cycle).
 8. Click **Save to Wheel** to write settings to EEPROM (persists across reboots).
 
----
+#### Optional — Preview the UI in a browser
 
-### Step 7 (optional) - Preview the UI in a browser
-
-If you want to see what the desktop app looks like without installing .NET (for example on a Chromebook):
-
-```
-cd ui-preview
-```
-
-Open `index.html` in any browser. Click **Connect** to see a simulated live angle display.
+Open `ui-preview/index.html` in any browser to see the desktop app UI without installing .NET (e.g. on a Chromebook).
 
 ---
 
@@ -168,6 +186,7 @@ FFBWheelCustomFirmware/
 ├── desktop-app/                     Windows configuration utility
 │   ├── FFBWheelConfig.csproj
 │   ├── Program.cs
+│   ├── EMC_UTILITY_ANALYSIS.md      Notes from unpacking EMC Utility Lite
 │   ├── Forms/MainForm.cs            Single-window dark UI
 │   ├── Models/
 │   │   ├── WheelSettings.cs         Settings data model
@@ -178,12 +197,13 @@ FFBWheelCustomFirmware/
 │       └── WheelProtocolParser.cs   Protocol parser
 ├── firmware/
 │   ├── leonardo-wheel/              Arduino Leonardo firmware
-│   │   ├── LeonardoWheel.ino        Main sketch
+│   │   ├── leonardo-wheel.ino        Main sketch
 │   │   ├── EncoderReader.h/.cpp     Quadrature encoder (D2/D3)
 │   │   ├── MotorDriver.h/.cpp       BTS7960 motor control
 │   │   ├── WheelSettings.h/.cpp     Settings struct + defaults
 │   │   ├── EepromStorage.h/.cpp     EEPROM persistence
 │   │   ├── SerialProtocol.h/.cpp    Serial command interface
+│   │   ├── BuildVersion.h           Release-stamped firmware version
 │   │   ├── WheelMath.h/.cpp         Angle math + FFB calculation
 │   │   ├── build_firmware.bat/.sh   Compile to .hex (Windows CMD / Linux/macOS)
 │   │   ├── flash_firmware.bat/.sh   Flash via arduino-cli (Windows CMD / Linux/macOS)
@@ -191,10 +211,13 @@ FFBWheelCustomFirmware/
 │   └── secondary-controller/        Optional pedal/button controller
 │       ├── SecondaryController.ino
 │       └── README.md
+├── versions/                        Versioned app + firmware release packages
 ├── ui-preview/                      Browser-based UI preview
 │   ├── index.html
 │   ├── styles.css
 │   └── script.js
+├── build_versioned_release.bat      Windows wrapper for versioned release build
+├── build_versioned_release.ps1      Creates next versioned app + firmware package
 ├── FFBWheelConfig.slnx              Visual Studio solution file
 └── README.md                        ← you are here
 ```
@@ -209,23 +232,25 @@ All successful commands reply with `OK`. Unknown commands reply with `ERROR INVA
 
 ### Commands (app → firmware)
 
-| Command | What it does |
-|---|---|
-| `GET_SETTINGS` | Request all settings (returns BEGIN_SETTINGS block) |
-| `GET_LIVE_STATE` | Request current angle + raw counts (returns BEGIN_LIVE block) |
-| `SET FORCE 60` | Set overall force (0–100) |
-| `SET MIN_FORCE 5` | Set minimum force (0–100) |
-| `SET DAMPING 10` | Set damping (0–100) |
-| `SET FRICTION 4` | Set friction (0–100) |
-| `SET SPRING 15` | Set spring (0–100) |
-| `SET RANGE 900` | Set steering range (90–1800°) |
-| `SET CENTER 12345` | Set center to a specific encoder value |
-| `SET INV_ENCODER 0` | Invert encoder (0 or 1) |
-| `SET INV_MOTOR 0` | Invert motor (0 or 1) |
-| `SET_CENTER_NOW` | Set current encoder position as centre |
-| `APPLY` | Apply pending settings |
-| `SAVE` | Persist active settings to EEPROM |
-| `LOAD_DEFAULTS` | Reset to compiled defaults |
+These settings commands travel over the Leonardo's USB CDC serial channel while the same board also exposes the HID wheel/FFB interface.
+
+| Command             | What it does                                                  |
+| ------------------- | ------------------------------------------------------------- |
+| `GET_SETTINGS`      | Request all settings (returns BEGIN_SETTINGS block)           |
+| `GET_LIVE_STATE`    | Request current angle + raw counts (returns BEGIN_LIVE block) |
+| `SET FORCE 60`      | Set overall force (0–100)                                     |
+| `SET MIN_FORCE 5`   | Set minimum force (0–100)                                     |
+| `SET DAMPING 10`    | Set damping (0–100)                                           |
+| `SET FRICTION 4`    | Set friction (0–100)                                          |
+| `SET SPRING 15`     | Set spring (0–100)                                            |
+| `SET RANGE 900`     | Set steering range (90–1800°)                                 |
+| `SET CENTER 12345`  | Set center to a specific encoder value                        |
+| `SET INV_ENCODER 0` | Invert encoder (0 or 1)                                       |
+| `SET INV_MOTOR 0`   | Invert motor (0 or 1)                                         |
+| `SET_CENTER_NOW`    | Set current encoder position as centre                        |
+| `APPLY`             | Apply pending settings                                        |
+| `SAVE`              | Persist active settings to EEPROM                             |
+| `LOAD_DEFAULTS`     | Reset to compiled defaults                                    |
 
 ### Settings response (firmware → app)
 
@@ -257,28 +282,28 @@ END_LIVE
 
 ## Default settings
 
-| Setting | Default |
-|---|---|
-| Overall force | 60 % |
-| Minimum force | 5 % |
-| Damping | 10 % |
-| Friction | 4 % |
-| Spring | 15 % |
-| Steering range | 900° |
-| Invert encoder | Off |
-| Invert motor | Off |
+| Setting        | Default |
+| -------------- | ------- |
+| Overall force  | 60 %    |
+| Minimum force  | 5 %     |
+| Damping        | 10 %    |
+| Friction       | 4 %     |
+| Spring         | 15 %    |
+| Steering range | 900°    |
+| Invert encoder | Off     |
+| Invert motor   | Off     |
 
 ---
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---|---|
-| Can't find the COM port | Unplug and re-plug the Leonardo. Click ↻ in the app. On Windows, check Device Manager → Ports. |
-| Build fails with "core not found" | Run `arduino-cli core install arduino:avr` |
-| Flash fails | The Leonardo's bootloader port only appears for a few seconds after reset. Try double-pressing the reset button on the board, then immediately run the flash command. |
-| `dotnet` command not found | Install the .NET 8 SDK: `winget install Microsoft.DotNet.SDK.8` |
-| App shows "Disconnected" immediately | Check that no other program (Arduino IDE Serial Monitor, etc.) has the COM port open. |
+| Problem                              | Solution                                                                                                                                                              |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Can't find the COM port              | Unplug and re-plug the Leonardo. Click ↻ in the app. On Windows, check Device Manager → Ports.                                                                        |
+| Build fails with "core not found"    | Run `arduino-cli core install arduino:avr`                                                                                                                            |
+| Flash fails                          | The Leonardo's bootloader port only appears for a few seconds after reset. Try double-pressing the reset button on the board, then immediately run the flash command. |
+| `dotnet` command not found           | Install the .NET 8 SDK: `winget install Microsoft.DotNet.SDK.8`                                                                                                       |
+| App shows "Disconnected" immediately | Check that no other program (Arduino IDE Serial Monitor, etc.) has the COM port open.                                                                                 |
 
 ---
 

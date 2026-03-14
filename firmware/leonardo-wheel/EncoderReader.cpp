@@ -1,30 +1,46 @@
 #include "EncoderReader.h"
 
-/* Pins: D2 = channel A (INT0), D3 = channel B (INT1) on Leonardo. */
-static const uint8_t PIN_ENC_A = 2;
-static const uint8_t PIN_ENC_B = 3;
+/*
+ * x4 quadrature decoder on D0 (PD2/INT2) and D1 (PD3/INT3).
+ * Matches EMCLite: lookup-table ISR, fires on CHANGE for both channels,
+ * supports +-2 missed-step recovery.
+ *
+ * Leonardo ATmega32U4 pin mapping:
+ *   D0 = PD2 = INT2    digitalPinToInterrupt(0) = 2
+ *   D1 = PD3 = INT3    digitalPinToInterrupt(1) = 3
+ */
 
 static volatile long encoderCount = 0;
+static volatile uint8_t prevState = 0;
 
-/* ISR for channel A rising/falling edge. */
-static void isrA() {
-    bool a = digitalRead(PIN_ENC_A);
-    bool b = digitalRead(PIN_ENC_B);
-    encoderCount += (a == b) ? 1 : -1;
-}
+/* Lookup table indexed by (prevBA << 2 | currBA).
+   Same table as EMCLite: 0=no change, +-1=normal step, +-2=missed step. */
+static const int8_t QEM[16] = {
+     0,  1, -1,  2,   /* prev=00: curr=00,01,10,11 */
+    -1,  0,  2,  1,   /* prev=01 */
+     1,  2,  0, -1,   /* prev=10 */
+     2, -1,  1,  0    /* prev=11 */
+};
 
-/* ISR for channel B rising/falling edge. */
-static void isrB() {
-    bool a = digitalRead(PIN_ENC_A);
-    bool b = digitalRead(PIN_ENC_B);
-    encoderCount += (a != b) ? 1 : -1;
+/* Shared ISR — reads both pins via direct port access for speed. */
+static void encoderISR() {
+    uint8_t pind = PIND;
+    uint8_t curr = ((pind >> 2) & 0x01) | ((pind >> 2) & 0x02);  /* bit0=PD2, bit1=PD3 */
+    uint8_t idx  = (prevState << 2) | curr;
+    encoderCount += QEM[idx];
+    prevState = curr;
 }
 
 void encoderInit() {
-    pinMode(PIN_ENC_A, INPUT_PULLUP);
-    pinMode(PIN_ENC_B, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(PIN_ENC_A), isrA, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(PIN_ENC_B), isrB, CHANGE);
+    pinMode(0, INPUT_PULLUP);
+    pinMode(1, INPUT_PULLUP);
+
+    /* Read initial state */
+    uint8_t pind = PIND;
+    prevState = ((pind >> 2) & 0x01) | ((pind >> 2) & 0x02);
+
+    attachInterrupt(digitalPinToInterrupt(0), encoderISR, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(1), encoderISR, CHANGE);
 }
 
 long encoderRead() {

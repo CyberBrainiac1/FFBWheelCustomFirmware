@@ -9,15 +9,22 @@ REM ============================================================
 
 setlocal
 
-set SKETCH_DIR=%~dp0
-set BUILD_DIR=%SKETCH_DIR%build
+for %%I in ("%~dp0.") do set "SKETCH_DIR=%%~fI"
+set BUILD_DIR=%SKETCH_DIR%\build
+set LIB_DIR=%SKETCH_DIR%\..\third_party\ArduinoJoystickWithFFBLibrary
 set FQBN=arduino:avr:leonardo
 
 echo.
 echo ---- Building LeonardoWheel firmware ----
 echo.
 
-arduino-cli compile --fqbn %FQBN% --output-dir "%BUILD_DIR%" "%SKETCH_DIR%"
+if not exist "%LIB_DIR%\library.properties" (
+    echo Required library not found: %LIB_DIR%
+    echo Clone YukMingLaw/ArduinoJoystickWithFFBLibrary into firmware\third_party first.
+    exit /b 1
+)
+
+arduino-cli compile --fqbn %FQBN% --library "%LIB_DIR%" --output-dir "%BUILD_DIR%" "%SKETCH_DIR%"
 
 if %ERRORLEVEL% neq 0 (
     echo.
@@ -27,5 +34,5 @@ if %ERRORLEVEL% neq 0 (
 
 echo.
 echo Build succeeded.  Output in: %BUILD_DIR%
-echo Hex file: %BUILD_DIR%\LeonardoWheel.ino.hex
+echo Hex file: %BUILD_DIR%\leonardo-wheel.ino.hex
 echo.

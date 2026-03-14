@@ -12,7 +12,7 @@
 set -e
 
 HEX_DIR="$(cd "$(dirname "$0")" && pwd)/build"
-HEX="$HEX_DIR/LeonardoWheel.ino.hex"
+HEX="$HEX_DIR/leonardo-wheel.ino.hex"
 PORT="${1:-/dev/ttyACM0}"
 
 if [ ! -f "$HEX" ]; then

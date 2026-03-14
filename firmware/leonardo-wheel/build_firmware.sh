@@ -11,15 +11,22 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
+LIB_DIR="$SCRIPT_DIR/../third_party/ArduinoJoystickWithFFBLibrary"
 FQBN="arduino:avr:leonardo"
 
 echo
 echo "---- Building LeonardoWheel firmware ----"
 echo
 
-arduino-cli compile --fqbn "$FQBN" --output-dir "$BUILD_DIR" "$SCRIPT_DIR"
+if [ ! -f "$LIB_DIR/library.properties" ]; then
+    echo "Required library not found: $LIB_DIR"
+    echo "Clone YukMingLaw/ArduinoJoystickWithFFBLibrary into firmware/third_party first."
+    exit 1
+fi
+
+arduino-cli compile --fqbn "$FQBN" --library "$LIB_DIR" --output-dir "$BUILD_DIR" "$SCRIPT_DIR"
 
 echo
 echo "Build succeeded.  Output in: $BUILD_DIR"
-echo "Hex file: $BUILD_DIR/LeonardoWheel.ino.hex"
+echo "Hex file: $BUILD_DIR/leonardo-wheel.ino.hex"
 echo
