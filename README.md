@@ -33,7 +33,9 @@ Everything you need to build and configure a USB force-feedback steering wheel.
 
 ## Quick start — step by step
 
-Follow every step in order. Copy-paste the commands into **PowerShell** (Windows) or **Terminal** (Linux / macOS).
+**Windows users:** PowerShell scripts are provided for every step so you only need to copy-paste one command at a time. Follow the **Windows (PowerShell)** sections below.
+
+**Linux / macOS users:** Use the **Terminal** sections.
 
 ---
 
@@ -41,6 +43,7 @@ Follow every step in order. Copy-paste the commands into **PowerShell** (Windows
 
 Install Git if you don't have it:
 
+**Windows:**
 ```
 winget install Git.Git
 ```
@@ -54,49 +57,34 @@ cd FFBWheelCustomFirmware
 
 ---
 
-### Step 2 — Flash the firmware to your Arduino Leonardo
+### Step 2 — Install prerequisites (Windows only)
 
-#### 2a. Install arduino-cli
+Run this **once** from the repo root. It installs arduino-cli, the .NET 8 SDK, and the AVR board core automatically:
+
+```
+powershell -ExecutionPolicy Bypass -File setup.ps1
+```
+
+> **Linux / macOS** — install prerequisites manually:
+> ```
+> # arduino-cli
+> curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+> sudo mv bin/arduino-cli /usr/local/bin/
+> arduino-cli core install arduino:avr
+>
+> # .NET 8 SDK — https://dotnet.microsoft.com/en-us/download/dotnet/8.0
+> ```
+
+---
+
+### Step 3 — Flash the firmware to your Arduino Leonardo
+
+#### 3a. Build the firmware
 
 **Windows (PowerShell):**
 
 ```
-winget install ArduinoSA.CLI
-```
-
-**Linux:**
-
-```
-curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
-sudo mv bin/arduino-cli /usr/local/bin/
-```
-
-**macOS:**
-
-```
-brew install arduino-cli
-```
-
-Verify it works:
-
-```
-arduino-cli version
-```
-
-#### 2b. Install the AVR board support
-
-Run this once:
-
-```
-arduino-cli core install arduino:avr
-```
-
-#### 2c. Build the firmware
-
-**Windows:**
-
-```
-firmware\leonardo-wheel\build_firmware.bat
+powershell -ExecutionPolicy Bypass -File firmware\leonardo-wheel\build_firmware.ps1
 ```
 
 **Linux / macOS:**
@@ -108,20 +96,20 @@ chmod +x firmware/leonardo-wheel/build_firmware.sh
 
 You should see `Build succeeded` and a `.hex` file in `firmware/leonardo-wheel/build/`.
 
-#### 2d. Flash the firmware
+#### 3b. Flash the firmware
 
-Plug in your Arduino Leonardo via USB. Find which port it's on:
+Plug in your Arduino Leonardo via USB.
 
-```
-arduino-cli board list
-```
-
-Then flash:
-
-**Windows:**
+**Windows (PowerShell) — auto-detects port:**
 
 ```
-firmware\leonardo-wheel\flash_firmware.bat COM4
+powershell -ExecutionPolicy Bypass -File firmware\leonardo-wheel\flash_firmware.ps1
+```
+
+Or specify the port explicitly:
+
+```
+powershell -ExecutionPolicy Bypass -File firmware\leonardo-wheel\flash_firmware.ps1 -Port COM4
 ```
 
 **Linux / macOS:**
@@ -130,48 +118,27 @@ firmware\leonardo-wheel\flash_firmware.bat COM4
 ./firmware/leonardo-wheel/flash_firmware.sh /dev/ttyACM0
 ```
 
-Replace `COM4` or `/dev/ttyACM0` with your actual port.
+On Windows the script auto-detects the port. On Linux/macOS, replace `/dev/ttyACM0` with your actual port (run `arduino-cli board list` to find it).
 
 ---
 
-### Step 3 — Run the desktop configuration app
+### Step 4 — Run the desktop configuration app
 
-#### 3a. Install .NET 8
-
-**To run a pre-built release:**
+**Windows (PowerShell) — builds and launches in one command:**
 
 ```
-winget install Microsoft.DotNet.DesktopRuntime.8
+powershell -ExecutionPolicy Bypass -File desktop-app\run_desktop_app.ps1
 ```
 
-**To build from source** (the SDK includes the runtime):
-
-```
-winget install Microsoft.DotNet.SDK.8
-```
-
-Or download manually: <https://dotnet.microsoft.com/en-us/download/dotnet/8.0>
-
-Verify:
-
-```
-dotnet --version
-```
-
-#### 3b. Build the desktop app
+**Linux / macOS (manual steps):**
 
 ```
 dotnet restore desktop-app/FFBWheelConfig.csproj
 dotnet build   desktop-app/FFBWheelConfig.csproj --configuration Release
-```
-
-#### 3c. Run
-
-```
 dotnet run --project desktop-app/FFBWheelConfig.csproj --configuration Release
 ```
 
-Or run the exe directly:
+Or run the exe directly after building:
 
 ```
 desktop-app\bin\Release\net8.0-windows\FFBWheelConfig.exe
@@ -179,7 +146,7 @@ desktop-app\bin\Release\net8.0-windows\FFBWheelConfig.exe
 
 ---
 
-### Step 4 — Connect and configure
+### Step 5 — Connect and configure
 
 1. Plug in the Arduino Leonardo via USB.
 2. Open the desktop app.
@@ -192,7 +159,7 @@ desktop-app\bin\Release\net8.0-windows\FFBWheelConfig.exe
 
 ---
 
-### Step 5 (optional) — Preview the UI in a browser
+### Step 6 (optional) — Preview the UI in a browser
 
 If you want to see what the desktop app looks like without installing .NET (for example on a Chromebook):
 
@@ -208,9 +175,12 @@ Open `index.html` in any browser. Click **Connect** to see a simulated live angl
 
 ```
 FFBWheelCustomFirmware/
+├── setup.ps1                        One-shot prerequisite installer (Windows)
 ├── desktop-app/                     Windows configuration utility
 │   ├── FFBWheelConfig.csproj
 │   ├── Program.cs
+│   ├── build_desktop_app.ps1        Build the desktop app (Windows)
+│   ├── run_desktop_app.ps1          Build + launch the desktop app (Windows)
 │   ├── Forms/MainForm.cs            Single-window dark UI
 │   ├── Models/
 │   │   ├── WheelSettings.cs         Settings data model
@@ -228,8 +198,8 @@ FFBWheelCustomFirmware/
 │   │   ├── EepromStorage.h/.cpp     EEPROM persistence
 │   │   ├── SerialProtocol.h/.cpp    Serial command interface
 │   │   ├── WheelMath.h/.cpp         Angle math + FFB calculation
-│   │   ├── build_firmware.bat/.sh   Compile to .hex
-│   │   ├── flash_firmware.bat/.sh   Flash via avrdude
+│   │   ├── build_firmware.bat/.sh/.ps1  Compile to .hex
+│   │   ├── flash_firmware.bat/.sh/.ps1  Flash via avrdude
 │   │   └── README.md
 │   └── secondary-controller/        Optional pedal/button controller
 │       ├── SecondaryController.ino
