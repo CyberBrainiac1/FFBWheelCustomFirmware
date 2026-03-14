@@ -1,0 +1,230 @@
+/* ============================================================
+   FFB Wheel Config — UI Preview Styles
+   Dark theme matching the WinForms desktop application.
+   ============================================================ */
+
+:root {
+    --bg-dark:   #1E1E1E;
+    --bg-panel:  #2A2A2A;
+    --bg-bar:    #222222;
+    --bg-ctrl:   #383838;
+    --bg-btn:    #3C3C3C;
+    --accent-dk: #007F8A;
+    --accent:    #00BCD4;
+    --text:      #E0E0E0;
+    --text-dim:  #888888;
+    --border:    #444444;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text);
+    max-width: 520px;
+    margin: 0 auto;
+    user-select: none;
+}
+
+/* ── Top bar ─────────────────────────────────────────────── */
+
+#top-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: var(--bg-bar);
+    border-bottom: 1px solid var(--border);
+}
+
+#top-bar select,
+#top-bar button {
+    font-size: 13px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--bg-ctrl);
+    color: var(--text);
+    cursor: pointer;
+}
+
+#top-bar button:hover { background: var(--bg-btn); }
+#top-bar button:disabled { opacity: 0.4; cursor: default; }
+
+#btn-refresh {
+    padding: 4px 8px;
+    font-size: 15px;
+}
+
+#lbl-firmware {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text-dim);
+}
+
+#status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 10px;
+    font-size: 12px;
+}
+
+#status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #F44336;
+    display: inline-block;
+}
+
+#status-dot.connected { background: #4CAF50; }
+
+/* ── Panels ──────────────────────────────────────────────── */
+
+.panel {
+    background: var(--bg-panel);
+    margin: 8px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+
+/* ── Steering panel ──────────────────────────────────────── */
+
+#angle-display {
+    text-align: center;
+    padding: 10px 0 2px;
+}
+
+#angle-value {
+    font-size: 68px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+}
+
+#angle-deg {
+    font-size: 28px;
+    color: var(--text-dim);
+    vertical-align: super;
+}
+
+#raw-counts {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+}
+
+#btn-center {
+    display: block;
+    margin: 10px auto 0;
+    padding: 5px 18px;
+    font-size: 13px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--bg-btn);
+    color: var(--text);
+    cursor: pointer;
+}
+
+#btn-center:hover { background: var(--bg-ctrl); }
+
+/* ── Slider rows ─────────────────────────────────────────── */
+
+.slider-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.slider-row label {
+    width: 120px;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.slider-row input[type="range"] {
+    flex: 1;
+    accent-color: var(--accent);
+    height: 4px;
+}
+
+.slider-row input[type="number"] {
+    width: 58px;
+    padding: 3px 6px;
+    font-size: 13px;
+    text-align: right;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--bg-ctrl);
+    color: var(--text);
+}
+
+.slider-row .unit {
+    font-size: 12px;
+    color: var(--text-dim);
+    width: 14px;
+}
+
+/* ── Checkboxes ──────────────────────────────────────────── */
+
+#checkbox-row {
+    display: flex;
+    gap: 24px;
+    margin-top: 12px;
+    font-size: 13px;
+}
+
+#checkbox-row input[type="checkbox"] {
+    accent-color: var(--accent);
+    margin-right: 4px;
+}
+
+/* ── Bottom bar ──────────────────────────────────────────── */
+
+#bottom-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 12px;
+    background: var(--bg-bar);
+    border-top: 1px solid var(--border);
+}
+
+#bottom-bar button {
+    font-size: 13px;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--bg-btn);
+    color: var(--text);
+    cursor: pointer;
+}
+
+#bottom-bar button:hover { background: var(--bg-ctrl); }
+
+#bottom-bar button.accent {
+    background: var(--accent-dk);
+    border-color: var(--accent);
+}
+
+#bottom-bar button.accent:hover {
+    background: var(--accent);
+    color: #000;
+}
+
+#lbl-status {
+    flex: 1 0 100%;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 4px;
+}
