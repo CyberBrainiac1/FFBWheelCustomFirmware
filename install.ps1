@@ -2,7 +2,7 @@
 #  install.ps1 — complete one-shot installer for FFB Wheel
 # ============================================================
 #  Runs ALL installation steps in order:
-#    1. Install prerequisites  (arduino-cli, .NET 8 SDK, AVR core)
+#    1. Install prerequisites  (Git, arduino-cli, .NET 8 SDK, AVR core)
 #    2. Build firmware          (compiles LeonardoWheel.ino → .hex)
 #    3. Flash firmware          (uploads .hex to the Arduino Leonardo)
 #    4. Build desktop app       (restores NuGet packages + Release build)
@@ -14,6 +14,7 @@
 #    -Port COM4          COM port for the Arduino (auto-detected if omitted)
 #    -SkipFlash          Skip the firmware flash step
 #    -SkipDesktopApp     Skip building the desktop configuration app
+#    -SkipGit            Skip Git installation
 #    -SkipDotNet         Skip .NET 8 SDK installation
 #    -SkipArduino        Skip arduino-cli / AVR core installation
 # ============================================================
@@ -22,6 +23,7 @@ param(
     [string]$Port          = '',
     [switch]$SkipFlash,
     [switch]$SkipDesktopApp,
+    [switch]$SkipGit,
     [switch]$SkipDotNet,
     [switch]$SkipArduino
 )
@@ -43,6 +45,7 @@ Write-Host ""
 Write-Host "Step 1/4  Installing prerequisites..." -ForegroundColor Cyan
 
 $setupArgs = @()
+if ($SkipGit)     { $setupArgs += '-SkipGit' }
 if ($SkipDotNet)  { $setupArgs += '-SkipDotNet' }
 if ($SkipArduino) { $setupArgs += '-SkipArduino' }
 
