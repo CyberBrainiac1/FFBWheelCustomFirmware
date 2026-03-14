@@ -11,7 +11,3 @@ void settingsLoadDefaults() {
 void settingsApplyPending() {
     activeSettings = pendingSettings;
 }
-
-void settingsCopyActiveToPending() {
-    pendingSettings = activeSettings;
-}

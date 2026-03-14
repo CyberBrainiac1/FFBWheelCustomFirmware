@@ -99,7 +99,7 @@ public sealed class WheelControllerService : IDisposable
     public bool SetCenter()
     {
         if (!IsConnected) return false;
-        if (!_client.SendCommand("SET_CENTER")) return false;
+        if (!_client.SendCommand("SET_CENTER_NOW")) return false;
         _client.SendCommand("GET_SETTINGS");
         return true;
     }

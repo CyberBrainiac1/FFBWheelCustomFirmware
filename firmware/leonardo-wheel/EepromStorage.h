@@ -2,7 +2,7 @@
 
 #include "WheelSettings.h"
 
-/* EEPROM persistence with a magic-byte validity check. */
+/* EEPROM persistence with magic, version, and checksum validation. */
 
 void eepromSave(const WheelSettingsData& data);
 void eepromLoad(WheelSettingsData& data);

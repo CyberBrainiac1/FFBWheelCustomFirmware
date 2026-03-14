@@ -248,24 +248,27 @@ FFBWheelCustomFirmware/
 
 The desktop app and firmware talk over USB serial at **115 200 baud, 8N1**.
 
+All successful commands reply with `OK`. Unknown commands reply with `ERROR INVALID_COMMAND`.
+
 ### Commands (app → firmware)
 
 | Command | What it does |
 |---|---|
-| `GET_SETTINGS` | Request all settings |
-| `GET_LIVE_STATE` | Request current angle + raw counts |
+| `GET_SETTINGS` | Request all settings (returns BEGIN_SETTINGS block) |
+| `GET_LIVE_STATE` | Request current angle + raw counts (returns BEGIN_LIVE block) |
 | `SET FORCE 60` | Set overall force (0–100) |
 | `SET MIN_FORCE 5` | Set minimum force (0–100) |
 | `SET DAMPING 10` | Set damping (0–100) |
 | `SET FRICTION 4` | Set friction (0–100) |
 | `SET SPRING 15` | Set spring (0–100) |
 | `SET RANGE 900` | Set steering range (90–1800°) |
+| `SET CENTER 12345` | Set center to a specific encoder value |
 | `SET INV_ENCODER 0` | Invert encoder (0 or 1) |
 | `SET INV_MOTOR 0` | Invert motor (0 or 1) |
+| `SET_CENTER_NOW` | Set current encoder position as centre |
 | `APPLY` | Apply pending settings |
-| `SAVE` | Persist to EEPROM |
-| `LOAD_DEFAULTS` | Reset to defaults |
-| `SET_CENTER` | Set current position as centre |
+| `SAVE` | Persist active settings to EEPROM |
+| `LOAD_DEFAULTS` | Reset to compiled defaults |
 
 ### Settings response (firmware → app)
 
@@ -280,7 +283,7 @@ RANGE=900
 CENTER=0
 INV_ENCODER=0
 INV_MOTOR=0
-FW_VERSION=1.0.0
+FW_VERSION=1.1.0
 END_SETTINGS
 ```
 
