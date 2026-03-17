@@ -489,9 +489,9 @@ input[type="checkbox"] { accent-color: #5B9BD5; cursor: pointer; }
       <div class="sl-row abs lc-r1">
         <span class="sl-label">Spring</span>
         <input class="sl-slider rangetrack" type="range" min="0" max="100" value="15"
-               data-pair="nud-overall" oninput="syncPair(this)">
-        <input class="sl-num" id="nud-overall" type="number" min="0" max="100" value="15"
-               data-pair-sld="0" oninput="syncPairNum(this)">
+               data-pair="nud-spring" oninput="syncPair(this)">
+        <input class="sl-num" id="nud-spring" type="number" min="0" max="100" value="15"
+               oninput="syncPairNum(this)">
         <span class="sl-suffix dim2">%</span>
       </div>
 
@@ -499,9 +499,9 @@ input[type="checkbox"] { accent-color: #5B9BD5; cursor: pointer; }
       <div class="sl-row abs lc-r2">
         <span class="sl-label">Damper</span>
         <input class="sl-slider rangetrack" type="range" min="0" max="100" value="10"
-               data-pair="nud-spring" oninput="syncPair(this)">
-        <input class="sl-num" id="nud-spring" type="number" min="0" max="100" value="10"
-               data-pair-sld="1" oninput="syncPairNum(this)">
+               data-pair="nud-damper" oninput="syncPair(this)">
+        <input class="sl-num" id="nud-damper" type="number" min="0" max="100" value="10"
+               oninput="syncPairNum(this)">
         <span class="sl-suffix dim2">%</span>
       </div>
 
@@ -509,15 +509,10 @@ input[type="checkbox"] { accent-color: #5B9BD5; cursor: pointer; }
       <div class="sl-row abs lc-r3">
         <span class="sl-label">Friction</span>
         <input class="sl-slider rangetrack" type="range" min="0" max="100" value="4"
-               data-pair="nud-damper" oninput="syncPair(this)">
-        <input class="sl-num" id="nud-damper" type="number" min="0" max="100" value="4"
-               data-pair-sld="2" oninput="syncPairNum(this)">
+               data-pair="nud-friction" oninput="syncPair(this)">
+        <input class="sl-num" id="nud-friction" type="number" min="0" max="100" value="4"
+               oninput="syncPairNum(this)">
         <span class="sl-suffix dim2">%</span>
-      </div>
-
-      <!-- Row 4: Friction Strength  (also used for settings-action buttons) -->
-      <div class="sl-row abs lc-r4" id="lc-r4-friction" style="top:116px; left:20px;">
-        <!-- Friction row is hidden behind action buttons; move up slightly -->
       </div>
 
       <!-- RIGHT COLUMN -->
@@ -525,9 +520,9 @@ input[type="checkbox"] { accent-color: #5B9BD5; cursor: pointer; }
       <div class="sl-row abs rc-r1">
         <span class="sl-label">Soft Lock</span>
         <input class="sl-slider rangetrack" type="range" min="0" max="900" value="900"
-               data-pair="nud-const" oninput="syncPair(this); document.getElementById('live-softlock').textContent=this.value;">
-        <input class="sl-num" id="nud-const" type="number" min="0" max="900" value="900"
-               style="width:52px" oninput="syncPairNum(this)">
+               data-pair="nud-softlock" oninput="syncPair(this)">
+        <input class="sl-num" id="nud-softlock" type="number" min="0" max="900" value="900"
+               style="width:52px" data-live="live-softlock" oninput="syncPairNum(this)">
         <span class="sl-suffix dim2">°</span>
       </div>
 
@@ -535,8 +530,8 @@ input[type="checkbox"] { accent-color: #5B9BD5; cursor: pointer; }
       <div class="sl-row abs rc-r2">
         <span class="sl-label">Enc. CPR</span>
         <input class="sl-slider rangetrack" type="range" min="600" max="4096" value="1024"
-               data-pair="nud-range" oninput="syncPair(this)">
-        <input class="sl-num" id="nud-range" type="number" min="600" max="4096" value="1024"
+               data-pair="nud-cpr" oninput="syncPair(this)">
+        <input class="sl-num" id="nud-cpr" type="number" min="600" max="4096" value="1024"
                style="width:52px" oninput="syncPairNum(this)">
       </div>
 
@@ -570,8 +565,8 @@ input[type="checkbox"] { accent-color: #5B9BD5; cursor: pointer; }
       <div class="sl-row abs" style="top:88px; left:20px;">
         <span class="sl-label">Inertia</span>
         <input class="sl-slider rangetrack" type="range" min="0" max="100" value="0"
-               data-pair="nud-friction" oninput="syncPair(this)">
-        <input class="sl-num" id="nud-friction" type="number" min="0" max="100" value="0"
+               data-pair="nud-inertia" oninput="syncPair(this)">
+        <input class="sl-num" id="nud-inertia" type="number" min="0" max="100" value="0"
                oninput="syncPairNum(this)">
         <span class="sl-suffix dim2">%</span>
       </div>
@@ -624,7 +619,12 @@ function syncPair(sliderEl) {
   const numId = sliderEl.getAttribute('data-pair');
   if (numId) {
     const numEl = document.getElementById(numId);
-    if (numEl) numEl.value = sliderEl.value;
+    if (numEl) {
+      numEl.value = sliderEl.value;
+      // update any declaratively linked live label
+      const liveId = numEl.getAttribute('data-live');
+      if (liveId) document.getElementById(liveId).textContent = sliderEl.value;
+    }
   }
   updateRangeTrack(sliderEl);
 }
@@ -638,6 +638,9 @@ function syncPairNum(numEl) {
     sld.value = numEl.value;
     updateRangeTrack(sld);
   }
+  // update any declaratively linked live label
+  const liveId = numEl.getAttribute('data-live');
+  if (liveId) document.getElementById(liveId).textContent = numEl.value;
 }
 
 function syncStrength(val, source) {
@@ -778,6 +781,7 @@ function doDisconnect() {
   document.getElementById('raw-axis').textContent        = '—';
   document.getElementById('raw-force').textContent       = '—';
   document.getElementById('last-cmd').textContent        = '—';
+  document.getElementById('raw-dir').textContent         = '—';
   setForceMode('STOPPED', 'info-color');
   setStatus('Disconnected.');
   showToast('Disconnected');
@@ -872,12 +876,12 @@ function doLoadProfile() {
   if (!p) return;
 
   // populate sliders (IDs repurposed for EMC Lite params)
-  setSliderRow('nud-overall',  p.spring);    // Spring
-  setSliderRow('nud-spring',   p.damper);    // Damper
-  setSliderRow('nud-damper',   p.friction);  // Friction
-  setSliderRow('nud-friction', p.inertia);   // Inertia
-  setSliderRow('nud-const',    p.softlock);  // Soft Lock
-  setSliderRow('nud-range',    p.cpr);       // Enc. CPR
+  setSliderRow('nud-spring',  p.spring);    // Spring
+  setSliderRow('nud-damper',   p.damper);    // Damper
+  setSliderRow('nud-friction',   p.friction);  // Friction
+  setSliderRow('nud-inertia', p.inertia);   // Inertia
+  setSliderRow('nud-softlock',    p.softlock);  // Soft Lock
+  setSliderRow('nud-cpr',    p.cpr);       // Enc. CPR
 
   document.getElementById('live-softlock').textContent = p.softlock;
   document.getElementById('live-spring').textContent   = p.spring;
@@ -909,12 +913,12 @@ function doReadSettings() {
   // Simulate reading EMC Lite HID settings from device
   setStatus('Reading settings from EMC device via HID…');
   setTimeout(() => {
-    setSliderRow('nud-overall',  15);    // Spring
-    setSliderRow('nud-spring',   10);    // Damper
-    setSliderRow('nud-damper',   4);     // Friction
-    setSliderRow('nud-friction', 0);     // Inertia
-    setSliderRow('nud-const',    900);   // Soft Lock (°)
-    setSliderRow('nud-range',    1024);  // Encoder CPR
+    setSliderRow('nud-spring',  15);    // Spring
+    setSliderRow('nud-damper',   10);    // Damper
+    setSliderRow('nud-friction',   4);     // Friction
+    setSliderRow('nud-inertia', 0);     // Inertia
+    setSliderRow('nud-softlock',    900);   // Soft Lock (°)
+    setSliderRow('nud-cpr',    1024);  // Encoder CPR
     document.getElementById('chk-inv-ffb').checked  = false;
     document.getElementById('chk-inv-axis').checked = false;
     document.getElementById('live-softlock').textContent = '900';
@@ -930,8 +934,8 @@ function doApplySettings() {
     showToast('Applied locally (not connected)');
     return;
   }
-  const spring   = document.getElementById('nud-overall').value;   // Spring
-  const softlock = document.getElementById('nud-const').value;     // Soft Lock
+  const spring   = document.getElementById('nud-spring').value;   // Spring
+  const softlock = document.getElementById('nud-softlock').value;     // Soft Lock
   document.getElementById('live-spring').textContent    = spring;
   document.getElementById('live-softlock').textContent  = softlock;
   setStatus('Settings sent via HID to EMC device.');
@@ -939,12 +943,12 @@ function doApplySettings() {
 }
 
 function doResetDefaults() {
-  setSliderRow('nud-overall',  15);   // Spring default
-  setSliderRow('nud-spring',   10);   // Damper default
-  setSliderRow('nud-damper',   4);    // Friction default
-  setSliderRow('nud-friction', 0);    // Inertia default
-  setSliderRow('nud-const',    900);  // Soft Lock default (°)
-  setSliderRow('nud-range',    1024); // Encoder CPR default
+  setSliderRow('nud-spring',  15);   // Spring default
+  setSliderRow('nud-damper',   10);   // Damper default
+  setSliderRow('nud-friction',   4);    // Friction default
+  setSliderRow('nud-inertia', 0);    // Inertia default
+  setSliderRow('nud-softlock',    900);  // Soft Lock default (°)
+  setSliderRow('nud-cpr',    1024); // Encoder CPR default
   document.getElementById('chk-inv-ffb').checked  = false;
   document.getElementById('chk-inv-axis').checked = false;
   document.getElementById('live-softlock').textContent = '900';

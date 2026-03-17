@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - main
-      # Feature branch kept so preview deploys during development; remove after merging to main.
+      # Feature branch included so the preview deploys during this PR; remove after merging.
+      # To disable preview deploys, delete the line below and keep only 'main'.
       - copilot/build-windows-desktop-utility
     paths:
       - 'ui-mockup-tester/**'
