@@ -63,9 +63,6 @@ public sealed class WheelControllerService : IDisposable
 
     public void Disconnect()
     {
-        // Safety: stop any test force before disconnecting
-        if (IsConnected)
-            _client.SendCommand("TEST_FORCE STOP");
         StopLiveTimer();
         _client.Disconnect();
         LiveState.IsConnected = false;
@@ -110,25 +107,6 @@ public sealed class WheelControllerService : IDisposable
         _client.SendCommand("GET_SETTINGS");
         return true;
     }
-
-    // ── Test-force commands ──────────────────────────────────────────────────
-
-    /// <summary>Sends a constant left force at the given strength (0-100 %).</summary>
-    public bool TestForceLeft(int strengthPercent) =>
-        IsConnected && _client.SendCommand($"TEST_FORCE LEFT {Math.Clamp(strengthPercent, 0, 100)}");
-
-    /// <summary>Sends a constant right force at the given strength (0-100 %).</summary>
-    public bool TestForceRight(int strengthPercent) =>
-        IsConnected && _client.SendCommand($"TEST_FORCE RIGHT {Math.Clamp(strengthPercent, 0, 100)}");
-
-    /// <summary>Activates spring-to-center mode.</summary>
-    public bool TestForceCenter() =>
-        IsConnected && _client.SendCommand("TEST_FORCE CENTER");
-
-    /// <summary>Stops all test forces immediately.</summary>
-    public bool TestForceStop() =>
-        IsConnected && _client.SendCommand("TEST_FORCE STOP");
-
 
     public bool RequestLiveState() =>
         IsConnected && _client.SendCommand("GET_LIVE_STATE");

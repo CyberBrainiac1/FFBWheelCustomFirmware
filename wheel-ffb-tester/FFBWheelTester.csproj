@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>FFBWheelTester</AssemblyName>
+    <RootNamespace>FFBWheelTester</RootNamespace>
+    <ApplicationIcon />
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Description>FFB Wheel Force Test Utility</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" />
+    <PackageReference Include="System.IO.Ports" Version="9.0.3" />
+  </ItemGroup>
+
+</Project>

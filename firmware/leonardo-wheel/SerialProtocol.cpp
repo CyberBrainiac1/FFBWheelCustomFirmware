@@ -3,16 +3,7 @@
 #include "EepromStorage.h"
 #include "EncoderReader.h"
 #include "WheelMath.h"
-#include "MotorDriver.h"
 #include "BuildVersion.h"
-
-/* Test-force state: when non-zero the protocol loop drives the motor directly
-   instead of the normal FFB calculation.  The main sketch checks this flag. */
-static int16_t s_testForce   = 0;   /* -500..+500, 0 = off              */
-static bool    s_testActive  = false;
-
-bool  serialProtocolTestActive()  { return s_testActive; }
-int16_t serialProtocolTestForce() { return s_testForce; }
 
 #define SERIAL_BUF_SIZE 64
 
@@ -95,42 +86,6 @@ static void handleCommand(const char* cmd) {
             return;
         }
         Serial.println(F("OK"));
-    } else if (startsWith(cmd, "TEST_FORCE ")) {
-        /* TEST_FORCE LEFT [0-100]
-           TEST_FORCE RIGHT [0-100]
-           TEST_FORCE CENTER
-           TEST_FORCE STOP          */
-        const char* rest = cmd + 11;
-        if (startsWith(rest, "LEFT")) {
-            int pct = 50;
-            if (rest[4] == ' ') pct = constrain(parseIntVal(rest + 5), 0, 100);
-            s_testForce  = -(int16_t)(pct * 5);   /* map 0-100 → 0-500 */
-            s_testActive = true;
-            motorSetForce(s_testForce);
-            Serial.println(F("OK"));
-        } else if (startsWith(rest, "RIGHT")) {
-            int pct = 50;
-            if (rest[5] == ' ') pct = constrain(parseIntVal(rest + 6), 0, 100);
-            s_testForce  = (int16_t)(pct * 5);
-            s_testActive = true;
-            motorSetForce(s_testForce);
-            Serial.println(F("OK"));
-        } else if (startsWith(rest, "CENTER")) {
-            /* Apply a mild centering (spring) force toward encoder zero.
-               The angle is re-evaluated on each firmware tick, so we just set
-               the flag and let the main loop run spring-only math. */
-            s_testForce  = 0;
-            s_testActive = true;   /* main loop handles centering when active+0 */
-            motorSetForce(0);
-            Serial.println(F("OK"));
-        } else if (startsWith(rest, "STOP")) {
-            s_testForce  = 0;
-            s_testActive = false;
-            motorSetForce(0);
-            Serial.println(F("OK"));
-        } else {
-            Serial.println(F("ERROR INVALID_COMMAND"));
-        }
     } else {
         Serial.println(F("ERROR INVALID_COMMAND"));
     }

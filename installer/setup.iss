@@ -2,16 +2,18 @@
 ; Build with: iscc installer\setup.iss
 ; Requires Inno Setup 6.x  (https://jrsoftware.org/isdl.php)
 ;
-; Before building the installer, publish the app:
-;   dotnet publish desktop-app\FFBWheelConfig.csproj -c Release -r win-x64 --self-contained true -o installer\publish
+; Before building the installer, publish the tester app:
+;   dotnet publish wheel-ffb-tester\FFBWheelTester.csproj -c Release -r win-x64 --self-contained true -o installer\publish
 ;
 ; The installer bundles the published output and the firmware hex.
 
 #define AppName      "FFB Wheel Tester"
-#define AppVersion   "1.2.2"
+#define AppVersion   "1.0.0"
+; Note: firmware is always the pre-built EMC hex from versions/1.2.2 — see HexExists below.
+; The app version (1.0.0) is independent of the bundled firmware version (1.2.2).
 #define AppPublisher "DIY FFB Wheel"
 #define AppURL       "https://github.com/CyberBrainiac1/FFBWheelCustomFirmware"
-#define AppExeName   "FFBWheelConfig.exe"
+#define AppExeName   "FFBWheelTester.exe"
 
 [Setup]
 AppId={{FFB-WHEEL-TESTER-2024}}
@@ -44,7 +46,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Firmware hex (bundled next to the exe so FirmwareFlasher.cs can find it)
-Source: "..\versions\{#AppVersion}\firmware\leonardo-wheel.ino.hex"; \
+Source: "..\versions\1.2.2\firmware\leonardo-wheel.ino.hex"; \
     DestDir: "{app}\firmware"; \
     DestName: "leonardo-wheel.ino.hex"; \
     Flags: ignoreversion; \
@@ -70,5 +72,5 @@ Filename: "{app}\{#AppExeName}"; \
 [Code]
 function HexExists(): Boolean;
 begin
-  Result := FileExists(ExpandConstant('{src}\..\versions\{#AppVersion}\firmware\leonardo-wheel.ino.hex'));
+  Result := FileExists(ExpandConstant('{src}\..\versions\1.2.2\firmware\leonardo-wheel.ino.hex'));
 end;

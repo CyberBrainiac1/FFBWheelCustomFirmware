@@ -135,24 +135,6 @@ void loop() {
     }
 
     motorSetForce(activeSettings.force == 0 ? 0 : motorForce);
-
-    /* Test-force mode: if active, override the FFB-derived motor output. */
-    if (serialProtocolTestActive()) {
-        int16_t tf = serialProtocolTestForce();
-        if (tf != 0) {
-            /* Constant left or right force; scale by overall force setting. */
-            int32_t scaled = ((int32_t)tf * activeSettings.force) / 100;
-            if (activeSettings.invertMotor) scaled = -scaled;
-            motorSetForce((int16_t)scaled);
-        } else {
-            /* Center mode: re-run spring math only. */
-            int16_t springOnly = wheelMathComputeMotorOutput(
-                angleDeg, (int16_t)(centeredRaw - prevPositionRaw),
-                activeSettings.force, activeSettings.minForce,
-                activeSettings.spring, 0, 0, activeSettings.invertMotor);
-            motorSetForce(springOnly);
-        }
-    }
     Joystick.sendState();
 
     prevVelocityRaw = velocity;

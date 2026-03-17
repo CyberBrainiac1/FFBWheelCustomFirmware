@@ -1,6 +1,9 @@
 # Build outputs
 desktop-app/bin/
 desktop-app/obj/
+wheel-ffb-tester/bin/
+wheel-ffb-tester/obj/
+installer/publish/
 
 # VS user settings
 *.user
