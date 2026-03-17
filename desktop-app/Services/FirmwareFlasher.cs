@@ -93,7 +93,8 @@ public sealed class FirmwareFlasher
         }
 
         Emit("Waiting for bootloader…");
-        await Task.Delay(3000, ct);
+        const int BootloaderDelayMs = 3000;
+        await Task.Delay(BootloaderDelayMs, ct);
 
         string args = $"-p atmega32u4 -c avr109 -P {portName} -b 57600 -D -U flash:w:\"{hexPath}\":i";
         Emit($"Running: avrdude {args}");

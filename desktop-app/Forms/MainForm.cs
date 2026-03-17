@@ -71,6 +71,10 @@ public sealed class MainForm : Form
     private Button   _btnEmergency     = null!;
     private Label    _lblStatusLine    = null!;
 
+    // ── Timing constants ──────────────────────────────────────────────────────
+    private const int PulseIntervalMs     = 300;
+    private const int OscillateIntervalMs = 400;
+
     // ── Keyboard / pulse state ────────────────────────────────────────────────
     private System.Windows.Forms.Timer? _pulseTimer;
     private System.Windows.Forms.Timer? _oscTimer;
@@ -391,7 +395,7 @@ public sealed class MainForm : Form
     private void StartPulse(ForceDirection dir)
     {
         StopTimers();
-        _pulseTimer = new System.Windows.Forms.Timer { Interval = 300 };
+        _pulseTimer = new System.Windows.Forms.Timer { Interval = PulseIntervalMs };
         bool on = true;
         _pulseTimer.Tick += (_, _) =>
         {
@@ -408,7 +412,7 @@ public sealed class MainForm : Form
     {
         StopTimers();
         _oscLeft = true;
-        _oscTimer = new System.Windows.Forms.Timer { Interval = 400 };
+        _oscTimer = new System.Windows.Forms.Timer { Interval = OscillateIntervalMs };
         _oscTimer.Tick += (_, _) =>
         {
             _oscLeft = !_oscLeft;

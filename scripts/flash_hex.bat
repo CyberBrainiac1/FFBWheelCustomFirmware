@@ -13,7 +13,7 @@ REM The hex file must be built first. Use build_versioned_release.bat
 REM or: arduino-cli compile --fqbn arduino:avr:leonardo ...
 REM
 
-setlocal
+setlocal enabledelayedexpansion
 
 REM ── Find repo root (where this script lives under scripts\) ─────────────────
 set "REPO_ROOT=%~dp0.."

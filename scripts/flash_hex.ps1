@@ -74,7 +74,8 @@ try {
 }
 
 Write-Host "Waiting for bootloader..." -ForegroundColor Yellow
-Start-Sleep -Seconds 3
+$BootloaderDelaySeconds = 3
+Start-Sleep -Seconds $BootloaderDelaySeconds
 
 $AvrdudeArgs = @(
     '-p', 'atmega32u4',
