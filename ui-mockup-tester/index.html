@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EMC FFB Tester – UI Mockup</title>
+<style>
+/* ── Reset / Base ───────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #181a1d;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 9pt;
+  color: #E6E6E6;
+  display: flex;
+  justify-content: center;
+  padding: 24px 12px 40px;
+  min-height: 100vh;
+}
+
+/* ── App window ─────────────────────────────────────────────────────────── */
+#app-window {
+  width: 860px;
+  background: #202225;
+  position: relative;
+  user-select: none;
+}
+
+/* title bar chrome */
+#title-bar {
+  background: #1A1C1F;
+  border-bottom: 1px solid #111;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 6px;
+}
+#title-bar .tb-title { flex: 1; font-size: 9pt; color: #C8CDD4; }
+.tb-btn {
+  width: 12px; height: 12px; border-radius: 50%;
+  border: none; cursor: default; display: inline-block;
+}
+.tb-close   { background: #e74c3c; }
+.tb-min     { background: #f1c40f; }
+.tb-noresize{ background: #555; cursor: not-allowed; }
+
+/* ── Panel base ─────────────────────────────────────────────────────────── */
+.panel {
+  background: #2A2D31;
+  border: 1px solid #3A3D42;
+  position: absolute;
+}
+
+.panel-title {
+  position: absolute;
+  font-size: 10pt;
+  font-weight: 700;
+  color: #E6E6E6;
+  left: 12px; top: 8px;
+}
+
+/* ── Content area (below title bar) ─────────────────────────────────────── */
+#content {
+  position: relative;
+  height: 620px;         /* inner content height */
+  background: #202225;
+  overflow: hidden;
+}
+
+/* ── Typography helpers ─────────────────────────────────────────────────── */
+.dim  { color: #C8CDD4; }
+.dim2 { color: #AAB1B9; }
+.warn { color: #D8B86A; font-size: 8pt; }
+.active-color { color: #4CAF50; }
+.error-color  { color: #C94040; }
+.left-color   { color: #5B9BD5; }
+.right-color  { color: #D57B5B; }
+.info-color   { color: #EAF6FF; }
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+button {
+  background: #3A3F46;
+  color: #E6E6E6;
+  border: 1px solid #555B64;
+  font-family: inherit;
+  font-size: 9pt;
+  cursor: pointer;
+  padding: 0 6px;
+  border-radius: 0;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background 0.08s;
+}
+button:hover { background: #4A5059; }
+button:active { background: #545C66; }
+button:disabled { color: #666; border-color: #444; cursor: default; background: #2D3035; }
+
+button.primary  { background: #2F5F87; border-color: #4C83B1; }
+button.primary:hover { background: #3972A0; }
+button.danger   { background: #6E3A3A; border-color: #8B4F4F; }
+button.danger:hover { background: #8B4A4A; }
+button.emerg    { background: #8B2E2E; border-color: #B44A4A; color: #fff; font-weight: 700; }
+button.emerg:hover { background: #B44A4A; }
+button.active-preset { background: #2F5F87 !important; border-color: #4C83B1 !important; }
+
+/* ── Inputs ──────────────────────────────────────────────────────────────── */
+select, input[type="number"] {
+  background: #1F2124;
+  color: #E6E6E6;
+  border: 1px solid #4A4E55;
+  font-family: inherit;
+  font-size: 9pt;
+  padding: 0 4px;
+  outline: none;
+}
+select { cursor: pointer; }
+select:focus, input[type="number"]:focus { border-color: #4C83B1; }
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #3A3F46;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  width: 100%;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #5B9BD5;
+  cursor: pointer;
+  border: 2px solid #3A3D42;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #5B9BD5;
+  cursor: pointer;
+  border: 2px solid #3A3D42;
+}
+/* filled track via gradient */
+input[type="range"].rangetrack {
+  background: linear-gradient(to right, #4272A0 0%, #4272A0 var(--val,20%), #3A3F46 var(--val,20%), #3A3F46 100%);
+}
+
+input[type="checkbox"] { accent-color: #5B9BD5; cursor: pointer; }
+
+/* label-checkbox combos */
+.chk-label {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 9pt; color: #C8CDD4; cursor: pointer;
+}
+
+/* ── Absolute-positioned content helpers ─────────────────────────────────── */
+.abs { position: absolute; }
+
+/* ── ═══════════════════════════════════════════════════════════════════════ */
+/* SECTION 1 — TOP DEVICE BAR   X:16 Y:12 W:828 H:82                        */
+/* ════════════════════════════════════════════════════════════════════════== */
+#top-bar { left:16px; top:12px; width:828px; height:82px; }
+
+#top-bar .lbl-device  { left:12px;  top:18px;  width:50px;  height:20px; line-height:20px; }
+#top-bar #cbo-device  { left:66px;  top:14px;  width:160px; height:28px; }
+#top-bar #btn-refresh { left:234px; top:14px;  width:82px;  height:28px; }
+#top-bar #btn-connect { left:324px; top:14px;  width:78px;  height:28px; }
+#top-bar #btn-disc    { left:410px; top:14px;  width:92px;  height:28px; }
+
+#top-bar #lbl-selected   { left:12px;  top:52px; width:360px; height:16px; color:#AAB1B9; line-height:16px; }
+#top-bar #lbl-conn-status{ left:510px; top:52px; width:200px; height:16px; color:#AAB1B9; line-height:16px; }
+
+/* Profile controls — right side */
+#top-bar .lbl-profile  { left:590px; top:14px; width:46px; height:20px; line-height:20px; }
+#top-bar #cbo-profile  { left:640px; top:12px; width:110px; height:28px; }
+/* load/save sit below */
+#top-bar #btn-load-profile { left:590px; top:46px; width:76px; height:28px; }
+#top-bar #btn-save-profile { left:674px; top:46px; width:76px; height:28px; }
+
+/* ── ═══════════════════════════════════════════════════════════════════════ */
+/* SECTION 2 — LIVE STATUS PANEL   X:16 Y:104 W:828 H:150                   */
+/* ════════════════════════════════════════════════════════════════════════== */
+#live-panel { left:16px; top:104px; width:828px; height:150px; }
+
+/* A — Large angle */
+#lbl-angle-title { left:24px; top:10px; width:100px; height:16px; color:#C8CDD4; font-size:8.5pt; line-height:16px; }
+#lbl-angle {
+  position: absolute;
+  left:24px; top:28px; width:220px; height:70px;
+  font-size:42pt; font-weight:700;
+  color: #EAF6FF;
+  line-height:70px;
+  letter-spacing:-1px;
+  transition: color 0.15s;
+}
+
+/* C — Force mode */
+#lbl-force-mode {
+  position: absolute;
+  left:270px; top:28px; width:260px; height:36px;
+  font-size:16pt; font-weight:700;
+  color: #EAF6FF;
+  line-height:36px;
+}
+
+/* D — State lines */
+#live-state-lines {
+  position: absolute;
+  left:270px; top:68px; width:260px; height:64px;
+  color:#C8CDD4; font-size:9pt; line-height:20px;
+}
+
+/* E — Raw values */
+#raw-values {
+  position: absolute;
+  left:560px; top:16px; width:246px; height:94px;
+  color:#AAB1B9; font-size:8.5pt; line-height:19px;
+  background: #22252A;
+  border: 1px solid #3A3D42;
+  padding: 6px 8px;
+}
+#raw-values .rv-title { font-weight:700; color:#C8CDD4; margin-bottom:2px; }
+
+/* F — Position bar */
+#pos-bar-wrap {
+  position: absolute;
+  left:24px; top:112px; width:500px; height:26px;
+}
+#pos-track {
+  position: absolute;
+  top:9px; left:0; width:100%; height:8px;
+  background: #3A3F46;
+  border: 1px solid #3A3D42;
+  border-radius: 2px;
+  overflow: visible;
+}
+#pos-center-mark {
+  position: absolute;
+  left:50%; top:-4px;
+  width:2px; height:16px;
+  background: #555B64;
+  transform: translateX(-50%);
+}
+#pos-marker {
+  position: absolute;
+  top:-5px; left:50%;
+  width:18px; height:18px;
+  background: #4272A0;
+  border: 2px solid #6A9FC8;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  transition: left 0.12s;
+  cursor: default;
+}
+#pos-labels {
+  position: absolute;
+  top:20px; left:0; width:100%;
+  display:flex; justify-content:space-between;
+  font-size:7.5pt; color:#666;
+}
+
+/* ── ═══════════════════════════════════════════════════════════════════════ */
+/* SECTION 3 — MANUAL FORCE CONTROL   X:16 Y:264 W:828 H:120                */
+/* ════════════════════════════════════════════════════════════════════════== */
+#force-panel { left:16px; top:264px; width:828px; height:120px; }
+#force-panel .panel-title { top:6px; font-size:9.5pt; }
+
+/* button row Y:40 */
+#force-panel #btn-turn-left  { left:20px;  top:36px; width:120px; height:34px; }
+#force-panel #btn-turn-right { left:148px; top:36px; width:120px; height:34px; }
+#force-panel #btn-center     { left:276px; top:36px; width:96px;  height:34px; }
+#force-panel #btn-stop-force { left:380px; top:36px; width:120px; height:34px; }
+#force-panel #btn-start-test { left:508px; top:36px; width:130px; height:34px; }
+#force-panel #btn-stop-test  { left:646px; top:36px; width:130px; height:34px; }
+
+/* strength row */
+#force-panel .lbl-str   { left:20px;  top:84px; width:100px; height:16px; line-height:16px; color:#C8CDD4; }
+#force-panel #sld-str   { left:128px; top:82px; width:220px; height:20px; }
+#force-panel #num-str   { left:356px; top:80px; width:50px;  height:26px; text-align:center; }
+#force-panel .lbl-pct   { left:412px; top:84px; width:20px;  height:16px; color:#AAB1B9; line-height:16px; }
+#force-panel #chk-stop-key-wrap { left:500px; top:82px; }
+
+/* ── ═══════════════════════════════════════════════════════════════════════ */
+/* SECTION 4 — WHEEL SETTINGS   X:16 Y:394 W:828 H:148                      */
+/* ════════════════════════════════════════════════════════════════════════== */
+#settings-panel { left:16px; top:394px; width:828px; height:148px; }
+
+/* two-column layout */
+/* Left column: label X:20, slider X:140, numeric X:316 */
+/* Right column: label X:430, slider X:560, numeric X:736 */
+/* rows Y: 32, 60, 88, 116 */
+
+.sl-row { position: absolute; display: flex; align-items: center; gap: 0; }
+.sl-label  { width:110px; color:#C8CDD4; font-size:8.5pt; text-align:right; padding-right:8px; }
+.sl-slider { width:166px; }
+.sl-num    { width:44px;  height:24px; text-align:center; margin-left:6px; }
+.sl-suffix { width:20px;  color:#AAB1B9; font-size:8pt; padding-left:3px; line-height:24px; }
+
+/* left col rows */
+.lc-r1 { left:20px; top:32px; }
+.lc-r2 { left:20px; top:60px; }
+.lc-r3 { left:20px; top:88px; }
+.lc-r4 { left:20px; top:116px; }
+
+/* right col rows */
+.rc-r1 { left:430px; top:32px; }
+.rc-r2 { left:430px; top:60px; }
+.rc-r3 { left:430px; top:88px; }
+
+/* checkboxes */
+#chk-inv-ffb-wrap  { position:absolute; left:558px; top:114px; }
+#chk-inv-axis-wrap { position:absolute; left:678px; top:114px; }
+
+/* settings action buttons */
+#settings-panel #btn-read-settings  { position:absolute; left:20px;  top:110px; width:130px; height:28px; }
+#settings-panel #btn-apply-settings { position:absolute; left:160px; top:110px; width:110px; height:28px; }
+#settings-panel #btn-reset-defaults { position:absolute; left:280px; top:110px; width:120px; height:28px; }
+
+/* ── ═══════════════════════════════════════════════════════════════════════ */
+/* SECTION 5 — BOTTOM BAR   X:16 Y:552 W:828 H:52                           */
+/* ════════════════════════════════════════════════════════════════════════== */
+#bottom-bar { left:16px; top:552px; width:828px; height:52px; }
+
+#bottom-bar #lbl-kb-help   { position:absolute; left:12px; top:8px;  width:420px; height:16px; color:#C8CDD4; font-size:8.5pt; line-height:16px; }
+#bottom-bar #lbl-status    { position:absolute; left:12px; top:28px; width:500px; height:16px; color:#C8CDD4; font-size:8.5pt; line-height:16px; }
+#bottom-bar #btn-emerg-stop{ position:absolute; left:648px; top:8px; width:160px; height:34px; font-size:9.5pt; }
+
+/* ── Toast notification ─────────────────────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: 16px; right: 20px;
+  background: #2A2D31;
+  border: 1px solid #3A3D42;
+  color: #C8CDD4;
+  padding: 6px 14px;
+  font-size: 8.5pt;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 999;
+}
+#toast.show { opacity: 1; }
+
+/* ── Mockup badge ───────────────────────────────────────────────────────── */
+#mockup-badge {
+  position: absolute;
+  right: 8px; top: 6px;
+  font-size: 7pt;
+  color: #666;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<div id="app-window">
+
+  <!-- Title bar chrome -->
+  <div id="title-bar">
+    <span class="tb-btn tb-close" title="Close"></span>
+    <span class="tb-btn tb-min"   title="Minimise"></span>
+    <span class="tb-btn tb-noresize" title="Maximise disabled"></span>
+    <span class="tb-title">EMC FFB Tester</span>
+    <span id="mockup-badge">HTML Mockup</span>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- CONTENT AREA                                                           -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="content">
+
+    <!-- ── SECTION 1: TOP DEVICE BAR ─────────────────────────────────────── -->
+    <div id="top-bar" class="panel abs">
+
+      <!-- device label -->
+      <span class="abs lbl-device dim">Device</span>
+
+      <!-- device dropdown -->
+      <select id="cbo-device" class="abs">
+        <option value="">— No device found —</option>
+        <option value="wheel1" selected>EMC Wheel (HID FFB)</option>
+        <option value="wheel2">Logitech G29</option>
+        <option value="wheel3">Thrustmaster T300</option>
+      </select>
+
+      <button id="btn-refresh"  class="abs" onclick="doRefresh()">Refresh</button>
+      <button id="btn-connect"  class="abs primary" onclick="doConnect()">Connect</button>
+      <button id="btn-disc"     class="abs" onclick="doDisconnect()" disabled>Disconnect</button>
+
+      <span id="lbl-selected"    class="abs">Selected: —</span>
+      <span id="lbl-conn-status" class="abs">Status: Not Connected</span>
+
+      <!-- Profile controls -->
+      <span class="abs lbl-profile dim">Profile</span>
+      <select id="cbo-profile" class="abs">
+        <option>Default Test</option>
+        <option>Low Force Bench</option>
+        <option>Strong Center</option>
+        <option>Left/Right Debug</option>
+      </select>
+      <button id="btn-load-profile" class="abs" onclick="doLoadProfile()">Load Profile</button>
+      <button id="btn-save-profile" class="abs" onclick="doSaveProfile()">Save Profile</button>
+    </div>
+
+    <!-- ── SECTION 2: LIVE STATUS / WHEEL STATE ───────────────────────────── -->
+    <div id="live-panel" class="panel abs">
+      <span class="panel-title">Live Wheel State</span>
+
+      <!-- A — Angle label -->
+      <span id="lbl-angle-title" class="abs dim">Wheel Angle</span>
+
+      <!-- A — Large angle number -->
+      <div id="lbl-angle" class="abs info-color">0°</div>
+
+      <!-- C — Force mode -->
+      <div id="lbl-force-mode" class="abs info-color">Mode: STOPPED</div>
+
+      <!-- D — State lines -->
+      <div id="live-state-lines" class="abs">
+        <div>Strength: <span id="live-strength">20</span>%</div>
+        <div>Range: <span id="live-range">900</span>°</div>
+        <div>Connected: <span id="live-conn" class="dim2">No</span></div>
+      </div>
+
+      <!-- E — Raw values -->
+      <div id="raw-values" class="abs">
+        <div class="rv-title">Raw / Debug</div>
+        <div>Raw Axis: <span id="raw-axis">—</span></div>
+        <div>Raw Force: <span id="raw-force">—</span></div>
+        <div>Last Command: <span id="last-cmd">—</span></div>
+        <div>Direction: <span id="raw-dir">Normal</span></div>
+      </div>
+
+      <!-- F — Wheel position bar -->
+      <div id="pos-bar-wrap" class="abs">
+        <div id="pos-track">
+          <div id="pos-center-mark"></div>
+          <div id="pos-marker"></div>
+        </div>
+        <div id="pos-labels">
+          <span>-450°</span>
+          <span>-225°</span>
+          <span>0°</span>
+          <span>+225°</span>
+          <span>+450°</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 3: MANUAL FORCE CONTROL ───────────────────────────────── -->
+    <div id="force-panel" class="panel abs">
+      <span class="panel-title">Manual Force Control</span>
+
+      <!-- buttons row -->
+      <button id="btn-turn-left"  class="abs"          onmousedown="startForce('left')"  onmouseup="releaseForce()"  onmouseleave="releaseForce()">Turn Left</button>
+      <button id="btn-turn-right" class="abs"          onmousedown="startForce('right')" onmouseup="releaseForce()"  onmouseleave="releaseForce()">Turn Right</button>
+      <button id="btn-center"     class="abs"          onclick="doCenter()">Center</button>
+      <button id="btn-stop-force" class="abs danger"   onclick="doStopForce()">Stop Force</button>
+      <button id="btn-start-test" class="abs primary"  onclick="doStartTest()">Start Test Mode</button>
+      <button id="btn-stop-test"  class="abs"          onclick="doStopTest()">Stop Test Mode</button>
+
+      <!-- strength row -->
+      <span class="abs lbl-str dim">Force Strength</span>
+      <input id="sld-str" class="abs rangetrack" type="range" min="0" max="100" value="20"
+             oninput="syncStrength(this.value, 'sld')">
+      <input id="num-str" class="abs" type="number" min="0" max="100" value="20"
+             oninput="syncStrength(this.value, 'num')">
+      <span class="abs lbl-pct dim2">%</span>
+      <span id="chk-stop-key-wrap" class="abs">
+        <label class="chk-label">
+          <input id="chk-stop-key" type="checkbox" checked>
+          Stop on key release
+        </label>
+      </span>
+    </div>
+
+    <!-- ── SECTION 4: WHEEL SETTINGS ─────────────────────────────────────── -->
+    <div id="settings-panel" class="panel abs">
+      <span class="panel-title">Wheel Settings</span>
+
+      <!-- LEFT COLUMN -->
+      <!-- Row 1: Overall Strength -->
+      <div class="sl-row abs lc-r1">
+        <span class="sl-label">Overall Strength</span>
+        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="60"
+               data-pair="nud-overall" oninput="syncPair(this)">
+        <input class="sl-num" id="nud-overall" type="number" min="0" max="100" value="60"
+               data-pair-sld="0" oninput="syncPairNum(this)">
+        <span class="sl-suffix dim2">%</span>
+      </div>
+
+      <!-- Row 2: Spring Strength -->
+      <div class="sl-row abs lc-r2">
+        <span class="sl-label">Spring Strength</span>
+        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="15"
+               data-pair="nud-spring" oninput="syncPair(this)">
+        <input class="sl-num" id="nud-spring" type="number" min="0" max="100" value="15"
+               data-pair-sld="1" oninput="syncPairNum(this)">
+        <span class="sl-suffix dim2">%</span>
+      </div>
+
+      <!-- Row 3: Damper Strength -->
+      <div class="sl-row abs lc-r3">
+        <span class="sl-label">Damper Strength</span>
+        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="10"
+               data-pair="nud-damper" oninput="syncPair(this)">
+        <input class="sl-num" id="nud-damper" type="number" min="0" max="100" value="10"
+               data-pair-sld="2" oninput="syncPairNum(this)">
+        <span class="sl-suffix dim2">%</span>
+      </div>
+
+      <!-- Row 4: Friction Strength  (also used for settings-action buttons) -->
+      <div class="sl-row abs lc-r4" id="lc-r4-friction" style="top:116px; left:20px;">
+        <!-- Friction row is hidden behind action buttons; move up slightly -->
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <!-- Row 1: Constant Force -->
+      <div class="sl-row abs rc-r1">
+        <span class="sl-label">Constant Force</span>
+        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="20"
+               data-pair="nud-const" oninput="syncPair(this)">
+        <input class="sl-num" id="nud-const" type="number" min="0" max="100" value="20"
+               oninput="syncPairNum(this)">
+        <span class="sl-suffix dim2">%</span>
+      </div>
+
+      <!-- Row 2: Steering Range -->
+      <div class="sl-row abs rc-r2">
+        <span class="sl-label">Steering Range</span>
+        <input class="sl-slider rangetrack" type="range" min="90" max="1440" value="900"
+               data-pair="nud-range" oninput="syncPair(this); document.getElementById('live-range').textContent=this.value;">
+        <input class="sl-num" id="nud-range" type="number" min="90" max="1440" value="900"
+               style="width:52px" oninput="syncPairNum(this)">
+        <span class="sl-suffix dim2">°</span>
+      </div>
+
+      <!-- Row 3: Center Offset -->
+      <div class="sl-row abs rc-r3">
+        <span class="sl-label">Center Offset</span>
+        <input class="sl-slider rangetrack" type="range" min="-500" max="500" value="0"
+               data-pair="nud-center-off" oninput="syncPair(this)">
+        <input class="sl-num" id="nud-center-off" type="number" min="-500" max="500" value="0"
+               style="width:52px" oninput="syncPairNum(this)">
+      </div>
+
+      <!-- Checkboxes -->
+      <span id="chk-inv-ffb-wrap">
+        <label class="chk-label">
+          <input id="chk-inv-ffb"  type="checkbox"> Invert FFB
+        </label>
+      </span>
+      <span id="chk-inv-axis-wrap">
+        <label class="chk-label">
+          <input id="chk-inv-axis" type="checkbox"> Invert Axis
+        </label>
+      </span>
+
+      <!-- Action buttons -->
+      <button id="btn-read-settings"  onclick="doReadSettings()">Read Current Settings</button>
+      <button id="btn-apply-settings" class="primary" onclick="doApplySettings()">Apply Settings</button>
+      <button id="btn-reset-defaults" onclick="doResetDefaults()">Reset Defaults</button>
+
+      <!-- Friction row (Row 4 left) — shifted up to avoid overlap with action buttons -->
+      <div class="sl-row abs" style="top:88px; left:20px;">
+        <span class="sl-label">Friction</span>
+        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="4"
+               data-pair="nud-friction" oninput="syncPair(this)">
+        <input class="sl-num" id="nud-friction" type="number" min="0" max="100" value="4"
+               oninput="syncPairNum(this)">
+        <span class="sl-suffix dim2">%</span>
+      </div>
+
+    </div>
+
+    <!-- ── SECTION 5: BOTTOM BAR ──────────────────────────────────────────── -->
+    <div id="bottom-bar" class="panel abs">
+      <span id="lbl-kb-help" class="dim">Keys: Left/Right = force · Space = stop · C = center · Up/Down = strength</span>
+      <span id="lbl-status"  class="dim">Ready</span>
+      <button id="btn-emerg-stop" class="emerg" onclick="doEmergencyStop()">EMERGENCY STOP</button>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app-window -->
+
+<div id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- JAVASCRIPT                                                             -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+"use strict";
+
+// ── App state ─────────────────────────────────────────────────────────────
+
+const state = {
+  connected: false,
+  testMode: false,
+  currentForce: 'none',  // 'none' | 'left' | 'right' | 'center'
+  angle: 0,
+  strength: 20,
+  liveAngleAnim: null,
+  keyLeft: false,
+  keyRight: false,
+};
+
+// ── Slider ↔ number sync ──────────────────────────────────────────────────
+
+function updateRangeTrack(el) {
+  const min = parseFloat(el.min) || 0;
+  const max = parseFloat(el.max) || 100;
+  const val = parseFloat(el.value);
+  const pct = ((val - min) / (max - min) * 100).toFixed(1);
+  el.style.setProperty('--val', pct + '%');
+  el.style.background = `linear-gradient(to right, #4272A0 0%, #4272A0 ${pct}%, #3A3F46 ${pct}%, #3A3F46 100%)`;
+}
+
+function syncPair(sliderEl) {
+  const numId = sliderEl.getAttribute('data-pair');
+  if (numId) {
+    const numEl = document.getElementById(numId);
+    if (numEl) numEl.value = sliderEl.value;
+  }
+  updateRangeTrack(sliderEl);
+}
+
+function syncPairNum(numEl) {
+  // find sibling slider in same .sl-row
+  const row = numEl.closest('.sl-row');
+  if (!row) return;
+  const sld = row.querySelector('input[type="range"]');
+  if (sld) {
+    sld.value = numEl.value;
+    updateRangeTrack(sld);
+  }
+}
+
+function syncStrength(val, source) {
+  val = Math.max(0, Math.min(100, parseInt(val) || 0));
+  document.getElementById('sld-str').value = val;
+  document.getElementById('num-str').value = val;
+  updateRangeTrack(document.getElementById('sld-str'));
+  state.strength = val;
+  document.getElementById('live-strength').textContent = val;
+  document.getElementById('raw-force').textContent = state.connected ? val : '—';
+}
+
+// ── Initialise all range tracks ───────────────────────────────────────────
+
+document.querySelectorAll('input[type="range"].rangetrack').forEach(el => {
+  updateRangeTrack(el);
+});
+
+// ── Status helpers ────────────────────────────────────────────────────────
+
+function setStatus(msg) {
+  document.getElementById('lbl-status').textContent = msg;
+}
+
+function setForceMode(label, cssClass) {
+  const el = document.getElementById('lbl-force-mode');
+  el.textContent = 'Mode: ' + label;
+  el.className = 'abs ' + (cssClass || 'info-color');
+}
+
+function showToast(msg, duration = 1800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ── Angle indicator ───────────────────────────────────────────────────────
+
+function setAngle(deg) {
+  // clamp to ±450 for visual bar
+  const clampedDeg = Math.max(-450, Math.min(450, deg));
+  state.angle = deg;
+
+  document.getElementById('lbl-angle').textContent = Math.round(deg) + '°';
+
+  // colour hint
+  const el = document.getElementById('lbl-angle');
+  if (Math.abs(deg) < 15) el.className = 'abs info-color';
+  else if (deg < 0)        el.className = 'abs left-color';
+  else                     el.className = 'abs right-color';
+
+  // position bar: 0% = far left (-450), 50% = center, 100% = far right (+450)
+  const pct = ((clampedDeg + 450) / 900) * 100;
+  document.getElementById('pos-marker').style.left = pct + '%';
+
+  document.getElementById('raw-axis').textContent = state.connected
+    ? Math.round(deg * 13.6).toString()
+    : '—';
+}
+
+// ── Simulated live angle animation ────────────────────────────────────────
+
+function startAngleAnim(targetDeg, speed = 3) {
+  stopAngleAnim();
+  state.liveAngleAnim = setInterval(() => {
+    const cur = state.angle;
+    const diff = targetDeg - cur;
+    if (Math.abs(diff) < 0.5) {
+      setAngle(targetDeg);
+    } else {
+      setAngle(cur + diff * 0.12 + (diff > 0 ? speed : -speed) * 0.04);
+    }
+  }, 30);
+}
+
+function stopAngleAnim() {
+  if (state.liveAngleAnim) {
+    clearInterval(state.liveAngleAnim);
+    state.liveAngleAnim = null;
+  }
+}
+
+function animateTo(deg) {
+  startAngleAnim(deg);
+}
+
+// ── Device connect / disconnect ───────────────────────────────────────────
+
+function doRefresh() {
+  const cbo = document.getElementById('cbo-device');
+  setStatus('Scanning for devices…');
+  // simulate a brief scan
+  cbo.disabled = true;
+  setTimeout(() => {
+    cbo.disabled = false;
+    setStatus('Found 1 device.');
+    showToast('Devices refreshed');
+  }, 600);
+}
+
+function doConnect() {
+  const cbo = document.getElementById('cbo-device');
+  const name = cbo.options[cbo.selectedIndex]?.text || '—';
+  if (!cbo.value) { setStatus('No device selected.'); return; }
+
+  state.connected = true;
+  document.getElementById('btn-connect').disabled  = true;
+  document.getElementById('btn-disc').disabled     = false;
+  document.getElementById('lbl-conn-status').textContent = 'Status: Connected';
+  document.getElementById('lbl-conn-status').className   = 'abs active-color';
+  document.getElementById('lbl-selected').textContent    = 'Selected: ' + name;
+  document.getElementById('live-conn').textContent       = 'Yes';
+  document.getElementById('live-conn').className         = 'active-color';
+  document.getElementById('raw-force').textContent       = state.strength;
+  document.getElementById('raw-axis').textContent        = '0';
+  document.getElementById('raw-dir').textContent         = 'Normal';
+  setStatus('Connected to ' + name);
+  showToast('Connected to ' + name);
+
+  // simulate live angle drift
+  setAngle(0);
+  startAngleAnim(0, 0.5);
+}
+
+function doDisconnect() {
+  state.connected = false;
+  state.currentForce = 'none';
+  stopAngleAnim();
+  setAngle(0);
+
+  document.getElementById('btn-connect').disabled  = false;
+  document.getElementById('btn-disc').disabled     = true;
+  document.getElementById('lbl-conn-status').textContent = 'Status: Not Connected';
+  document.getElementById('lbl-conn-status').className   = 'abs dim2';
+  document.getElementById('live-conn').textContent       = 'No';
+  document.getElementById('live-conn').className         = 'dim2';
+  document.getElementById('raw-axis').textContent        = '—';
+  document.getElementById('raw-force').textContent       = '—';
+  document.getElementById('last-cmd').textContent        = '—';
+  setForceMode('STOPPED', 'info-color');
+  setStatus('Disconnected.');
+  showToast('Disconnected');
+}
+
+// ── Force commands ────────────────────────────────────────────────────────
+
+function startForce(dir) {
+  if (!state.connected) { setStatus('Not connected.'); return; }
+  stopAngleAnim();
+
+  if (dir === 'left') {
+    state.currentForce = 'left';
+    setForceMode('LEFT FORCE', 'left-color');
+    setStatus('Sending left force (' + state.strength + '%)');
+    document.getElementById('last-cmd').textContent = 'LEFT';
+    animateTo(-120 * (state.strength / 100));
+  } else if (dir === 'right') {
+    state.currentForce = 'right';
+    setForceMode('RIGHT FORCE', 'right-color');
+    setStatus('Sending right force (' + state.strength + '%)');
+    document.getElementById('last-cmd').textContent = 'RIGHT';
+    animateTo(120 * (state.strength / 100));
+  }
+}
+
+function releaseForce() {
+  if (document.getElementById('chk-stop-key').checked) doStopForce();
+}
+
+function doCenter() {
+  if (!state.connected) { setStatus('Not connected.'); return; }
+  state.currentForce = 'center';
+  setForceMode('CENTERING', 'active-color');
+  setStatus('Centering…');
+  document.getElementById('last-cmd').textContent = 'CENTER';
+  animateTo(0);
+}
+
+function doStopForce() {
+  if (!state.connected && !state.testMode) { setStatus('Not connected.'); return; }
+  stopAngleAnim();
+  state.currentForce = 'none';
+  state.testMode = false;
+  setForceMode('STOPPED', 'info-color');
+  setStatus('Force stopped.');
+  document.getElementById('last-cmd').textContent = 'STOP';
+  document.getElementById('btn-start-test').classList.remove('active-preset');
+  // gentle return to center
+  startAngleAnim(0, 0.3);
+}
+
+function doStartTest() {
+  if (!state.connected) { setStatus('Not connected.'); return; }
+  state.testMode = true;
+  setForceMode('TEST MODE', 'warn');
+  setStatus('Test mode active — use keys or buttons.');
+  document.getElementById('btn-start-test').classList.add('active-preset');
+  document.getElementById('last-cmd').textContent = 'TEST_MODE';
+  showToast('Test mode started');
+}
+
+function doStopTest() {
+  doStopForce();
+  showToast('Test mode stopped');
+}
+
+function doEmergencyStop() {
+  stopAngleAnim();
+  state.currentForce = 'none';
+  state.testMode = false;
+  setForceMode('STOPPED', 'info-color');
+  setStatus('EMERGENCY STOP.');
+  document.getElementById('last-cmd').textContent = 'ESTOP';
+  document.getElementById('btn-start-test').classList.remove('active-preset');
+  setAngle(0);
+  showToast('⚠ EMERGENCY STOP', 2500);
+}
+
+// ── Profile controls ──────────────────────────────────────────────────────
+
+function doLoadProfile() {
+  const name = document.getElementById('cbo-profile').value;
+  const profiles = {
+    'Default Test':    { overall:60, spring:15, damper:10, friction:4, constForce:20, range:900 },
+    'Low Force Bench': { overall:20, spring:10, damper:0,  friction:0, constForce:10, range:900 },
+    'Strong Center':   { overall:60, spring:80, damper:20, friction:10, constForce:20, range:900 },
+    'Left/Right Debug':{ overall:40, spring:0,  damper:0,  friction:0, constForce:40, range:900 },
+  };
+  const p = profiles[name];
+  if (!p) return;
+
+  // populate sliders
+  setSliderRow('nud-overall',  p.overall);
+  setSliderRow('nud-spring',   p.spring);
+  setSliderRow('nud-damper',   p.damper);
+  setSliderRow('nud-friction', p.friction);
+  setSliderRow('nud-const',    p.constForce);
+  setSliderRow('nud-range',    p.range);
+
+  document.getElementById('live-range').textContent = p.range;
+  setStatus('Profile loaded: ' + name + ' — press Apply Settings to send.');
+  showToast('Profile loaded: ' + name);
+}
+
+function doSaveProfile() {
+  const name = document.getElementById('cbo-profile').value || 'Profile';
+  setStatus('Profile saved: ' + name + ' (local)');
+  showToast('Profile saved: ' + name);
+}
+
+function setSliderRow(numId, value) {
+  const numEl = document.getElementById(numId);
+  if (!numEl) return;
+  numEl.value = value;
+  syncPairNum(numEl);
+}
+
+// ── Settings panel ────────────────────────────────────────────────────────
+
+function doReadSettings() {
+  if (!state.connected) {
+    setStatus('Not connected — showing app defaults.');
+    showToast('Not connected — defaults shown');
+    return;
+  }
+  // simulate reading from device
+  setStatus('Reading settings from device…');
+  setTimeout(() => {
+    setSliderRow('nud-overall',  60);
+    setSliderRow('nud-spring',   15);
+    setSliderRow('nud-damper',   10);
+    setSliderRow('nud-friction', 4);
+    setSliderRow('nud-const',    20);
+    setSliderRow('nud-range',    900);
+    setSliderRow('nud-center-off', 0);
+    document.getElementById('chk-inv-ffb').checked  = false;
+    document.getElementById('chk-inv-axis').checked = false;
+    document.getElementById('live-range').textContent = '900';
+    setStatus('Settings read from device.');
+    showToast('Settings loaded from device');
+  }, 400);
+}
+
+function doApplySettings() {
+  if (!state.connected) {
+    setStatus('Not connected — settings applied locally.');
+    showToast('Applied locally (not connected)');
+    return;
+  }
+  const overall = document.getElementById('nud-overall').value;
+  const range   = document.getElementById('nud-range').value;
+  document.getElementById('live-strength').textContent = overall;
+  document.getElementById('live-range').textContent    = range;
+  setStatus('Settings applied.');
+  showToast('Settings applied');
+}
+
+function doResetDefaults() {
+  setSliderRow('nud-overall',    20);
+  setSliderRow('nud-spring',     20);
+  setSliderRow('nud-damper',     0);
+  setSliderRow('nud-friction',   0);
+  setSliderRow('nud-const',      20);
+  setSliderRow('nud-range',      900);
+  setSliderRow('nud-center-off', 0);
+  document.getElementById('chk-inv-ffb').checked  = false;
+  document.getElementById('chk-inv-axis').checked = false;
+  document.getElementById('live-range').textContent = '900';
+  setStatus('Reset to defaults.');
+  showToast('Reset to defaults');
+}
+
+// ── Keyboard handling ─────────────────────────────────────────────────────
+
+document.addEventListener('keydown', e => {
+  if (['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+  switch (e.code) {
+    case 'ArrowLeft':
+      if (!state.keyLeft) { state.keyLeft = true; startForce('left'); }
+      e.preventDefault(); break;
+    case 'ArrowRight':
+      if (!state.keyRight) { state.keyRight = true; startForce('right'); }
+      e.preventDefault(); break;
+    case 'Space':
+      doStopForce(); e.preventDefault(); break;
+    case 'KeyC':
+      doCenter(); e.preventDefault(); break;
+    case 'ArrowUp': {
+      const v = Math.min(100, state.strength + 5);
+      syncStrength(v, 'key'); e.preventDefault(); break;
+    }
+    case 'ArrowDown': {
+      const v = Math.max(0, state.strength - 5);
+      syncStrength(v, 'key'); e.preventDefault(); break;
+    }
+  }
+});
+
+document.addEventListener('keyup', e => {
+  if (['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+  if (e.code === 'ArrowLeft') {
+    state.keyLeft = false;
+    if (document.getElementById('chk-stop-key').checked && !state.keyRight) releaseForce();
+  }
+  if (e.code === 'ArrowRight') {
+    state.keyRight = false;
+    if (document.getElementById('chk-stop-key').checked && !state.keyLeft) releaseForce();
+  }
+});
+
+// ── Initial sync of all range tracks ─────────────────────────────────────
+
+document.querySelectorAll('input[type="range"].rangetrack').forEach(updateRangeTrack);
+syncStrength(20, 'init');
+
+// ── Idle angle drift (cosmetic demo when connected) ───────────────────────
+
+let driftInterval = null;
+function startDrift() {
+  if (driftInterval) return;
+  driftInterval = setInterval(() => {
+    if (state.connected && state.currentForce === 'none' && !state.testMode) {
+      // small random drift
+      const target = (Math.random() - 0.5) * 6;
+      startAngleAnim(target, 0.1);
+    }
+  }, 3000);
+}
+startDrift();
+</script>
+</body>
+</html>
