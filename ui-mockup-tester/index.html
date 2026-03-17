@@ -423,18 +423,18 @@ input[type="checkbox"] { accent-color: #5B9BD5; cursor: pointer; }
 
       <!-- D — State lines -->
       <div id="live-state-lines" class="abs">
-        <div>Strength: <span id="live-strength">20</span>%</div>
-        <div>Range: <span id="live-range">900</span>°</div>
+        <div>Spring: <span id="live-spring">15</span>%</div>
+        <div>Soft Lock: <span id="live-softlock">900</span>°</div>
         <div>Connected: <span id="live-conn" class="dim2">No</span></div>
       </div>
 
       <!-- E — Raw values -->
       <div id="raw-values" class="abs">
         <div class="rv-title">Raw / Debug</div>
-        <div>Raw Axis: <span id="raw-axis">—</span></div>
-        <div>Raw Force: <span id="raw-force">—</span></div>
-        <div>Last Command: <span id="last-cmd">—</span></div>
-        <div>Direction: <span id="raw-dir">Normal</span></div>
+        <div>HID Axis: <span id="raw-axis">—</span></div>
+        <div>Effect Level: <span id="raw-force">—</span>%</div>
+        <div>Last HID Cmd: <span id="last-cmd">—</span></div>
+        <div>Firmware: <span id="raw-dir">—</span></div>
       </div>
 
       <!-- F — Wheel position bar -->
@@ -485,32 +485,32 @@ input[type="checkbox"] { accent-color: #5B9BD5; cursor: pointer; }
       <span class="panel-title">Wheel Settings</span>
 
       <!-- LEFT COLUMN -->
-      <!-- Row 1: Overall Strength -->
+      <!-- Row 1: Spring (EMC Lite: SetSpring) -->
       <div class="sl-row abs lc-r1">
-        <span class="sl-label">Overall Strength</span>
-        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="60"
+        <span class="sl-label">Spring</span>
+        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="15"
                data-pair="nud-overall" oninput="syncPair(this)">
-        <input class="sl-num" id="nud-overall" type="number" min="0" max="100" value="60"
+        <input class="sl-num" id="nud-overall" type="number" min="0" max="100" value="15"
                data-pair-sld="0" oninput="syncPairNum(this)">
         <span class="sl-suffix dim2">%</span>
       </div>
 
-      <!-- Row 2: Spring Strength -->
+      <!-- Row 2: Damper (EMC Lite: SetDamper) -->
       <div class="sl-row abs lc-r2">
-        <span class="sl-label">Spring Strength</span>
-        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="15"
+        <span class="sl-label">Damper</span>
+        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="10"
                data-pair="nud-spring" oninput="syncPair(this)">
-        <input class="sl-num" id="nud-spring" type="number" min="0" max="100" value="15"
+        <input class="sl-num" id="nud-spring" type="number" min="0" max="100" value="10"
                data-pair-sld="1" oninput="syncPairNum(this)">
         <span class="sl-suffix dim2">%</span>
       </div>
 
-      <!-- Row 3: Damper Strength -->
+      <!-- Row 3: Friction (EMC Lite: SetFriction) -->
       <div class="sl-row abs lc-r3">
-        <span class="sl-label">Damper Strength</span>
-        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="10"
+        <span class="sl-label">Friction</span>
+        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="4"
                data-pair="nud-damper" oninput="syncPair(this)">
-        <input class="sl-num" id="nud-damper" type="number" min="0" max="100" value="10"
+        <input class="sl-num" id="nud-damper" type="number" min="0" max="100" value="4"
                data-pair-sld="2" oninput="syncPairNum(this)">
         <span class="sl-suffix dim2">%</span>
       </div>
@@ -521,28 +521,27 @@ input[type="checkbox"] { accent-color: #5B9BD5; cursor: pointer; }
       </div>
 
       <!-- RIGHT COLUMN -->
-      <!-- Row 1: Constant Force -->
+      <!-- Row 1: Soft Lock / steering angle limit (EMC Lite: SetSoftlock, 0–900°) -->
       <div class="sl-row abs rc-r1">
-        <span class="sl-label">Constant Force</span>
-        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="20"
-               data-pair="nud-const" oninput="syncPair(this)">
-        <input class="sl-num" id="nud-const" type="number" min="0" max="100" value="20"
-               oninput="syncPairNum(this)">
-        <span class="sl-suffix dim2">%</span>
-      </div>
-
-      <!-- Row 2: Steering Range -->
-      <div class="sl-row abs rc-r2">
-        <span class="sl-label">Steering Range</span>
-        <input class="sl-slider rangetrack" type="range" min="90" max="1440" value="900"
-               data-pair="nud-range" oninput="syncPair(this); document.getElementById('live-range').textContent=this.value;">
-        <input class="sl-num" id="nud-range" type="number" min="90" max="1440" value="900"
+        <span class="sl-label">Soft Lock</span>
+        <input class="sl-slider rangetrack" type="range" min="0" max="900" value="900"
+               data-pair="nud-const" oninput="syncPair(this); document.getElementById('live-softlock').textContent=this.value;">
+        <input class="sl-num" id="nud-const" type="number" min="0" max="900" value="900"
                style="width:52px" oninput="syncPairNum(this)">
         <span class="sl-suffix dim2">°</span>
       </div>
 
-      <!-- Row 3: Center Offset -->
-      <div class="sl-row abs rc-r3">
+      <!-- Row 2: Encoder CPR (EMC Lite: SetCpr — hardware encoder resolution) -->
+      <div class="sl-row abs rc-r2">
+        <span class="sl-label">Enc. CPR</span>
+        <input class="sl-slider rangetrack" type="range" min="600" max="4096" value="1024"
+               data-pair="nud-range" oninput="syncPair(this)">
+        <input class="sl-num" id="nud-range" type="number" min="600" max="4096" value="1024"
+               style="width:52px" oninput="syncPairNum(this)">
+      </div>
+
+      <!-- Row 3: hidden — EMC Lite centering is handled by Set Center button, not offset slider -->
+      <div class="sl-row abs rc-r3" style="display:none;">
         <span class="sl-label">Center Offset</span>
         <input class="sl-slider rangetrack" type="range" min="-500" max="500" value="0"
                data-pair="nud-center-off" oninput="syncPair(this)">
@@ -553,12 +552,12 @@ input[type="checkbox"] { accent-color: #5B9BD5; cursor: pointer; }
       <!-- Checkboxes -->
       <span id="chk-inv-ffb-wrap">
         <label class="chk-label">
-          <input id="chk-inv-ffb"  type="checkbox"> Invert FFB
+          <input id="chk-inv-ffb"  type="checkbox"> Inv. Motor
         </label>
       </span>
       <span id="chk-inv-axis-wrap">
         <label class="chk-label">
-          <input id="chk-inv-axis" type="checkbox"> Invert Axis
+          <input id="chk-inv-axis" type="checkbox"> Inv. Encoder
         </label>
       </span>
 
@@ -567,12 +566,12 @@ input[type="checkbox"] { accent-color: #5B9BD5; cursor: pointer; }
       <button id="btn-apply-settings" class="primary" onclick="doApplySettings()">Apply Settings</button>
       <button id="btn-reset-defaults" onclick="doResetDefaults()">Reset Defaults</button>
 
-      <!-- Friction row (Row 4 left) — shifted up to avoid overlap with action buttons -->
+      <!-- Inertia row (Row 4 left — EMC Lite: SetInertia) -->
       <div class="sl-row abs" style="top:88px; left:20px;">
-        <span class="sl-label">Friction</span>
-        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="4"
+        <span class="sl-label">Inertia</span>
+        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="0"
                data-pair="nud-friction" oninput="syncPair(this)">
-        <input class="sl-num" id="nud-friction" type="number" min="0" max="100" value="4"
+        <input class="sl-num" id="nud-friction" type="number" min="0" max="100" value="0"
                oninput="syncPairNum(this)">
         <span class="sl-suffix dim2">%</span>
       </div>
@@ -647,7 +646,6 @@ function syncStrength(val, source) {
   document.getElementById('num-str').value = val;
   updateRangeTrack(document.getElementById('sld-str'));
   state.strength = val;
-  document.getElementById('live-strength').textContent = val;
   document.getElementById('raw-force').textContent = state.connected ? val : '—';
 }
 
@@ -756,7 +754,7 @@ function doConnect() {
   document.getElementById('live-conn').className         = 'active-color';
   document.getElementById('raw-force').textContent       = state.strength;
   document.getElementById('raw-axis').textContent        = '0';
-  document.getElementById('raw-dir').textContent         = 'Normal';
+  document.getElementById('raw-dir').textContent         = 'EMC Lite 0.9.32';
   setStatus('Connected to ' + name);
   showToast('Connected to ' + name);
 
@@ -863,24 +861,26 @@ function doEmergencyStop() {
 
 function doLoadProfile() {
   const name = document.getElementById('cbo-profile').value;
+  // EMC Lite settings: spring, damper, friction, inertia, softlock (°), cpr
   const profiles = {
-    'Default Test':    { overall:60, spring:15, damper:10, friction:4, constForce:20, range:900 },
-    'Low Force Bench': { overall:20, spring:10, damper:0,  friction:0, constForce:10, range:900 },
-    'Strong Center':   { overall:60, spring:80, damper:20, friction:10, constForce:20, range:900 },
-    'Left/Right Debug':{ overall:40, spring:0,  damper:0,  friction:0, constForce:40, range:900 },
+    'Default Test':    { spring:15, damper:10, friction:4,  inertia:0, softlock:900, cpr:1024 },
+    'Low Force Bench': { spring:8,  damper:5,  friction:2,  inertia:0, softlock:900, cpr:1024 },
+    'Strong Center':   { spring:80, damper:20, friction:10, inertia:5, softlock:900, cpr:1024 },
+    'Left/Right Debug':{ spring:0,  damper:0,  friction:0,  inertia:0, softlock:900, cpr:1024 },
   };
   const p = profiles[name];
   if (!p) return;
 
-  // populate sliders
-  setSliderRow('nud-overall',  p.overall);
-  setSliderRow('nud-spring',   p.spring);
-  setSliderRow('nud-damper',   p.damper);
-  setSliderRow('nud-friction', p.friction);
-  setSliderRow('nud-const',    p.constForce);
-  setSliderRow('nud-range',    p.range);
+  // populate sliders (IDs repurposed for EMC Lite params)
+  setSliderRow('nud-overall',  p.spring);    // Spring
+  setSliderRow('nud-spring',   p.damper);    // Damper
+  setSliderRow('nud-damper',   p.friction);  // Friction
+  setSliderRow('nud-friction', p.inertia);   // Inertia
+  setSliderRow('nud-const',    p.softlock);  // Soft Lock
+  setSliderRow('nud-range',    p.cpr);       // Enc. CPR
 
-  document.getElementById('live-range').textContent = p.range;
+  document.getElementById('live-softlock').textContent = p.softlock;
+  document.getElementById('live-spring').textContent   = p.spring;
   setStatus('Profile loaded: ' + name + ' — press Apply Settings to send.');
   showToast('Profile loaded: ' + name);
 }
@@ -906,20 +906,20 @@ function doReadSettings() {
     showToast('Not connected — defaults shown');
     return;
   }
-  // simulate reading from device
-  setStatus('Reading settings from device…');
+  // Simulate reading EMC Lite HID settings from device
+  setStatus('Reading settings from EMC device via HID…');
   setTimeout(() => {
-    setSliderRow('nud-overall',  60);
-    setSliderRow('nud-spring',   15);
-    setSliderRow('nud-damper',   10);
-    setSliderRow('nud-friction', 4);
-    setSliderRow('nud-const',    20);
-    setSliderRow('nud-range',    900);
-    setSliderRow('nud-center-off', 0);
+    setSliderRow('nud-overall',  15);    // Spring
+    setSliderRow('nud-spring',   10);    // Damper
+    setSliderRow('nud-damper',   4);     // Friction
+    setSliderRow('nud-friction', 0);     // Inertia
+    setSliderRow('nud-const',    900);   // Soft Lock (°)
+    setSliderRow('nud-range',    1024);  // Encoder CPR
     document.getElementById('chk-inv-ffb').checked  = false;
     document.getElementById('chk-inv-axis').checked = false;
-    document.getElementById('live-range').textContent = '900';
-    setStatus('Settings read from device.');
+    document.getElementById('live-softlock').textContent = '900';
+    document.getElementById('live-spring').textContent   = '15';
+    setStatus('Settings read from EMC device (HID).');
     showToast('Settings loaded from device');
   }, 400);
 }
@@ -930,26 +930,26 @@ function doApplySettings() {
     showToast('Applied locally (not connected)');
     return;
   }
-  const overall = document.getElementById('nud-overall').value;
-  const range   = document.getElementById('nud-range').value;
-  document.getElementById('live-strength').textContent = overall;
-  document.getElementById('live-range').textContent    = range;
-  setStatus('Settings applied.');
-  showToast('Settings applied');
+  const spring   = document.getElementById('nud-overall').value;   // Spring
+  const softlock = document.getElementById('nud-const').value;     // Soft Lock
+  document.getElementById('live-spring').textContent    = spring;
+  document.getElementById('live-softlock').textContent  = softlock;
+  setStatus('Settings sent via HID to EMC device.');
+  showToast('Settings applied via HID');
 }
 
 function doResetDefaults() {
-  setSliderRow('nud-overall',    20);
-  setSliderRow('nud-spring',     20);
-  setSliderRow('nud-damper',     0);
-  setSliderRow('nud-friction',   0);
-  setSliderRow('nud-const',      20);
-  setSliderRow('nud-range',      900);
-  setSliderRow('nud-center-off', 0);
+  setSliderRow('nud-overall',  15);   // Spring default
+  setSliderRow('nud-spring',   10);   // Damper default
+  setSliderRow('nud-damper',   4);    // Friction default
+  setSliderRow('nud-friction', 0);    // Inertia default
+  setSliderRow('nud-const',    900);  // Soft Lock default (°)
+  setSliderRow('nud-range',    1024); // Encoder CPR default
   document.getElementById('chk-inv-ffb').checked  = false;
   document.getElementById('chk-inv-axis').checked = false;
-  document.getElementById('live-range').textContent = '900';
-  setStatus('Reset to defaults.');
+  document.getElementById('live-softlock').textContent = '900';
+  document.getElementById('live-spring').textContent   = '15';
+  setStatus('Reset to EMC Lite defaults.');
   showToast('Reset to defaults');
 }
 
