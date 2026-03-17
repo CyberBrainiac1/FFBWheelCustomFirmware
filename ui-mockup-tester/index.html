@@ -3,33 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EMC FFB Tester – UI Mockup</title>
+<title>DIY Wheel Config</title>
 <style>
-/* ── Reset / Base ───────────────────────────────────────────────────────── */
+/* ── Reset ──────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ── Body ───────────────────────────────────────────────────────────────── */
 body {
   background: #181a1d;
   font-family: "Segoe UI", system-ui, sans-serif;
-  font-size: 9pt;
+  font-size: 10pt;
   color: #E6E6E6;
   display: flex;
   justify-content: center;
-  padding: 24px 12px 40px;
+  padding: 24px 12px 48px;
   min-height: 100vh;
-}
-
-/* ── App window ─────────────────────────────────────────────────────────── */
-#app-window {
-  width: 860px;
-  background: #202225;
-  position: relative;
   user-select: none;
 }
 
-/* title bar chrome */
+/* ── App window (760px wide, matches actual app) ────────────────────────── */
+#app-window {
+  width: 760px;
+  background: #202225;
+  position: relative;
+}
+
+/* ── Fake Windows title bar ─────────────────────────────────────────────── */
 #title-bar {
-  background: #1A1C1F;
+  background: #1a1c1f;
   border-bottom: 1px solid #111;
   height: 28px;
   display: flex;
@@ -37,983 +38,884 @@ body {
   padding: 0 10px;
   gap: 6px;
 }
-#title-bar .tb-title { flex: 1; font-size: 9pt; color: #C8CDD4; }
-.tb-btn {
-  width: 12px; height: 12px; border-radius: 50%;
-  border: none; cursor: default; display: inline-block;
-}
+#title-bar .tb-title { flex: 1; font-size: 9pt; color: #c8cdd4; }
+.tb-btn { width: 12px; height: 12px; border-radius: 50%; border: none; display: inline-block; cursor: default; }
 .tb-close   { background: #e74c3c; }
 .tb-min     { background: #f1c40f; }
-.tb-noresize{ background: #555; cursor: not-allowed; }
+.tb-nomax   { background: #555; }
+#mockup-badge { font-size: 7pt; color: #555; letter-spacing: .4px; text-transform: uppercase; }
+
+/* ── Content area ───────────────────────────────────────────────────────── */
+#content { position: relative; padding-bottom: 12px; background: #202225; }
 
 /* ── Panel base ─────────────────────────────────────────────────────────── */
 .panel {
-  background: #2A2D31;
-  border: 1px solid #3A3D42;
+  background: #2a2d31;
+  border: 1px solid #3a3d42;
   position: absolute;
+  left: 16px;
+  width: 728px;
 }
-
-.panel-title {
-  position: absolute;
-  font-size: 10pt;
-  font-weight: 700;
-  color: #E6E6E6;
-  left: 12px; top: 8px;
-}
-
-/* ── Content area (below title bar) ─────────────────────────────────────── */
-#content {
-  position: relative;
-  height: 620px;         /* inner content height */
-  background: #202225;
-  overflow: hidden;
-}
-
-/* ── Typography helpers ─────────────────────────────────────────────────── */
-.dim  { color: #C8CDD4; }
-.dim2 { color: #AAB1B9; }
-.warn { color: #D8B86A; font-size: 8pt; }
-.active-color { color: #4CAF50; }
-.error-color  { color: #C94040; }
-.left-color   { color: #5B9BD5; }
-.right-color  { color: #D57B5B; }
-.info-color   { color: #EAF6FF; }
 
 /* ── Buttons ─────────────────────────────────────────────────────────────── */
 button {
-  background: #3A3F46;
-  color: #E6E6E6;
-  border: 1px solid #555B64;
+  background: #3a3f46;
+  color: #e6e6e6;
+  border: 1px solid #555b64;
   font-family: inherit;
-  font-size: 9pt;
+  font-size: 10pt;
   cursor: pointer;
-  padding: 0 6px;
-  border-radius: 0;
-  line-height: 1;
+  padding: 0 10px;
   white-space: nowrap;
-  transition: background 0.08s;
+  line-height: 1;
 }
-button:hover { background: #4A5059; }
-button:active { background: #545C66; }
-button:disabled { color: #666; border-color: #444; cursor: default; background: #2D3035; }
-
-button.primary  { background: #2F5F87; border-color: #4C83B1; }
-button.primary:hover { background: #3972A0; }
-button.danger   { background: #6E3A3A; border-color: #8B4F4F; }
-button.danger:hover { background: #8B4A4A; }
-button.emerg    { background: #8B2E2E; border-color: #B44A4A; color: #fff; font-weight: 700; }
-button.emerg:hover { background: #B44A4A; }
-button.active-preset { background: #2F5F87 !important; border-color: #4C83B1 !important; }
+button:hover:not(:disabled)  { background: #474e57; }
+button:active:not(:disabled) { background: #2d3238; }
+button:disabled { background: #2b2e33; color: #7e858d; border-color: #3a3d42; cursor: default; }
+button.primary  { background: #2f5f87; border-color: #4c83b1; color: #fff; }
+button.primary:hover:not(:disabled)  { background: #3a72a0; }
+button.primary:active:not(:disabled) { background: #264f74; }
+button.primary:disabled { background: #2b2e33; color: #7e858d; border-color: #3a3d42; }
 
 /* ── Inputs ──────────────────────────────────────────────────────────────── */
 select, input[type="number"] {
-  background: #1F2124;
-  color: #E6E6E6;
-  border: 1px solid #4A4E55;
+  background: #1f2124;
+  color: #e6e6e6;
+  border: 1px solid #4a4e55;
   font-family: inherit;
-  font-size: 9pt;
-  padding: 0 4px;
+  font-size: 10pt;
+  padding: 0 6px;
   outline: none;
+  height: 28px;
 }
-select { cursor: pointer; }
-select:focus, input[type="number"]:focus { border-color: #4C83B1; }
+select:focus, input[type="number"]:focus { border-color: #4c83b1; }
+input[type="number"] { text-align: center; }
+input[type="number"]:disabled { opacity: .5; color: #7e858d; }
+select:disabled { opacity: .5; cursor: default; }
 
+/* Slider — filled track via CSS variable */
 input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  background: #3A3F46;
-  height: 4px;
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
-  width: 100%;
+  -webkit-appearance: none; appearance: none;
+  height: 6px; border-radius: 3px; outline: none; cursor: pointer;
+  background: linear-gradient(to right,
+    #3e89b8 0%, #3e89b8 var(--fill, 0%),
+    #1e2023 var(--fill, 0%), #1e2023 100%);
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  appearance: none;
-  width: 14px; height: 14px;
-  border-radius: 50%;
-  background: #5B9BD5;
-  cursor: pointer;
-  border: 2px solid #3A3D42;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #5ba8d6; border: 1px solid #3e89b8; cursor: pointer;
 }
 input[type="range"]::-moz-range-thumb {
-  width: 14px; height: 14px;
-  border-radius: 50%;
-  background: #5B9BD5;
-  cursor: pointer;
-  border: 2px solid #3A3D42;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #5ba8d6; border: 1px solid #3e89b8; cursor: pointer;
+  box-shadow: none;
 }
-/* filled track via gradient */
-input[type="range"].rangetrack {
-  background: linear-gradient(to right, #4272A0 0%, #4272A0 var(--val,20%), #3A3F46 var(--val,20%), #3A3F46 100%);
+input[type="range"]:disabled { opacity: .45; cursor: default; }
+input[type="range"]:disabled::-webkit-slider-thumb { cursor: default; }
+
+input[type="checkbox"] { accent-color: #3e89b8; cursor: pointer; width: 15px; height: 15px; }
+
+/* ── TOP BAR  (y=12, h=58) ───────────────────────────────────────────────── */
+#top-bar { top: 12px; height: 58px; }
+
+#top-bar .lbl-port    { position:absolute; left:12px;  top:19px; color:#e6e6e6; }
+#top-bar #cbo-port    { position:absolute; left:82px;  top:15px; width:110px; }
+#top-bar #btn-refresh { position:absolute; left:204px; top:15px; height:28px; width:72px; }
+#top-bar #btn-connect { position:absolute; left:286px; top:15px; height:28px; width:78px; }
+#top-bar #btn-disc    { position:absolute; left:374px; top:15px; height:28px; width:88px; }
+#top-bar #lbl-fw      { position:absolute; left:492px; top:11px; color:#9098a1; font-size:9pt; }
+#top-bar #lbl-status  { position:absolute; left:492px; top:30px; color:#9098a1; font-size:9pt; }
+
+/* ── STEERING PANEL  (y=80, h=230) ──────────────────────────────────────── */
+#steering-panel { top: 80px; height: 230px; }
+
+/* Title */
+#steering-panel .ptitle { position:absolute; left:12px; top:8px; font-weight:700; }
+
+/* SVG wheel area */
+#wheel-wrap {
+  position: absolute;
+  left: 10px; top: 26px;
+  width: 190px; height: 190px;
+  cursor: grab;
 }
+#wheel-wrap.disabled { cursor: default; opacity: .4; }
+#wheel-wrap:active:not(.disabled) { cursor: grabbing; }
 
-input[type="checkbox"] { accent-color: #5B9BD5; cursor: pointer; }
-
-/* label-checkbox combos */
-.chk-label {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 9pt; color: #C8CDD4; cursor: pointer;
-}
-
-/* ── Absolute-positioned content helpers ─────────────────────────────────── */
-.abs { position: absolute; }
-
-/* ── ═══════════════════════════════════════════════════════════════════════ */
-/* SECTION 1 — TOP DEVICE BAR   X:16 Y:12 W:828 H:82                        */
-/* ════════════════════════════════════════════════════════════════════════== */
-#top-bar { left:16px; top:12px; width:828px; height:82px; }
-
-#top-bar .lbl-device  { left:12px;  top:18px;  width:50px;  height:20px; line-height:20px; }
-#top-bar #cbo-device  { left:66px;  top:14px;  width:160px; height:28px; }
-#top-bar #btn-refresh { left:234px; top:14px;  width:82px;  height:28px; }
-#top-bar #btn-connect { left:324px; top:14px;  width:78px;  height:28px; }
-#top-bar #btn-disc    { left:410px; top:14px;  width:92px;  height:28px; }
-
-#top-bar #lbl-selected   { left:12px;  top:52px; width:360px; height:16px; color:#AAB1B9; line-height:16px; }
-#top-bar #lbl-conn-status{ left:510px; top:52px; width:200px; height:16px; color:#AAB1B9; line-height:16px; }
-
-/* Profile controls — right side */
-#top-bar .lbl-profile  { left:590px; top:14px; width:46px; height:20px; line-height:20px; }
-#top-bar #cbo-profile  { left:640px; top:12px; width:110px; height:28px; }
-/* load/save sit below */
-#top-bar #btn-load-profile { left:590px; top:46px; width:76px; height:28px; }
-#top-bar #btn-save-profile { left:674px; top:46px; width:76px; height:28px; }
-
-/* ── ═══════════════════════════════════════════════════════════════════════ */
-/* SECTION 2 — LIVE STATUS PANEL   X:16 Y:104 W:828 H:150                   */
-/* ════════════════════════════════════════════════════════════════════════== */
-#live-panel { left:16px; top:104px; width:828px; height:150px; }
-
-/* A — Large angle */
-#lbl-angle-title { left:24px; top:10px; width:100px; height:16px; color:#C8CDD4; font-size:8.5pt; line-height:16px; }
+/* Angle / counts */
 #lbl-angle {
   position: absolute;
-  left:24px; top:28px; width:220px; height:70px;
-  font-size:42pt; font-weight:700;
-  color: #EAF6FF;
-  line-height:70px;
-  letter-spacing:-1px;
-  transition: color 0.15s;
+  left: 212px; top: 28px;
+  font-size: 44pt; font-weight: 700;
+  color: #eaf6ff; line-height: 1;
 }
+#lbl-raw-counts { position:absolute; left:216px; top:106px; color:#aab1b9; font-size:9pt; }
+#lbl-sim-hint   { position:absolute; left:216px; top:126px; color:#555b64; font-size:8pt; }
 
-/* C — Force mode */
-#lbl-force-mode {
+/* Range controls */
+#range-group { position:absolute; right:14px; top:26px; width:238px; }
+#range-group .rg-label { font-size:9pt; color:#9098a1; margin-bottom:6px; }
+#range-row { display:flex; align-items:center; gap:6px; margin-bottom:10px; }
+#range-row #sld-range  { flex:1; }
+#range-row #nud-range  { width:64px; flex-shrink:0; }
+#range-row .deg-suffix { color:#9098a1; font-size:9pt; }
+#btn-center { height:28px; width:118px; margin-bottom:6px; display:block; }
+.range-note { font-size:8pt; color:#555b64; }
+
+/* FFB force bar */
+#ffb-bar-area {
   position: absolute;
-  left:270px; top:28px; width:260px; height:36px;
-  font-size:16pt; font-weight:700;
-  color: #EAF6FF;
-  line-height:36px;
+  left: 212px; top: 150px;
+  width: 340px;
 }
-
-/* D — State lines */
-#live-state-lines {
-  position: absolute;
-  left:270px; top:68px; width:260px; height:64px;
-  color:#C8CDD4; font-size:9pt; line-height:20px;
+#ffb-bar-area .ffb-title { font-size:8pt; color:#9098a1; margin-bottom:4px; }
+#ffb-track {
+  height: 12px; background: #1e2023; border: 1px solid #3a3d42;
+  border-radius: 3px; position: relative; overflow: hidden;
 }
-
-/* E — Raw values */
-#raw-values {
-  position: absolute;
-  left:560px; top:16px; width:246px; height:94px;
-  color:#AAB1B9; font-size:8.5pt; line-height:19px;
-  background: #22252A;
-  border: 1px solid #3A3D42;
-  padding: 6px 8px;
+#ffb-fill {
+  position: absolute; top: 0; height: 100%;
+  transition: left .04s, width .04s, background .04s;
 }
-#raw-values .rv-title { font-weight:700; color:#C8CDD4; margin-bottom:2px; }
+#ffb-detail { font-size:7.5pt; color:#555b64; margin-top:4px; }
 
-/* F — Position bar */
-#pos-bar-wrap {
-  position: absolute;
-  left:24px; top:112px; width:500px; height:26px;
+/* ── SETTINGS PANEL  (y=320, h=170) ─────────────────────────────────────── */
+#settings-panel { top: 320px; height: 170px; }
+#settings-panel .ptitle { position:absolute; left:12px; top:8px; font-weight:700; }
+
+.setting-row {
+  display: flex; align-items: center; height: 26px;
+  position: absolute; left: 14px; right: 14px;
 }
-#pos-track {
-  position: absolute;
-  top:9px; left:0; width:100%; height:8px;
-  background: #3A3F46;
-  border: 1px solid #3A3D42;
-  border-radius: 2px;
-  overflow: visible;
-}
-#pos-center-mark {
-  position: absolute;
-  left:50%; top:-4px;
-  width:2px; height:16px;
-  background: #555B64;
-  transform: translateX(-50%);
-}
-#pos-marker {
-  position: absolute;
-  top:-5px; left:50%;
-  width:18px; height:18px;
-  background: #4272A0;
-  border: 2px solid #6A9FC8;
-  border-radius: 50%;
-  transform: translateX(-50%);
-  transition: left 0.12s;
-  cursor: default;
-}
-#pos-labels {
-  position: absolute;
-  top:20px; left:0; width:100%;
-  display:flex; justify-content:space-between;
-  font-size:7.5pt; color:#666;
-}
+.setting-row .sr-label  { width: 116px; font-size:9pt; color:#c8cdd4; }
+.setting-row .sr-slider { flex:1; margin-right:8px; }
+.setting-row .sr-nud    { width:54px; height:26px; font-size:10pt; }
 
-/* ── ═══════════════════════════════════════════════════════════════════════ */
-/* SECTION 3 — MANUAL FORCE CONTROL   X:16 Y:264 W:828 H:120                */
-/* ════════════════════════════════════════════════════════════════════════== */
-#force-panel { left:16px; top:264px; width:828px; height:120px; }
-#force-panel .panel-title { top:6px; font-size:9.5pt; }
+#chk-group { position:absolute; right:16px; top:44px; }
+.chk-row { display:flex; align-items:center; gap:7px; font-size:9pt; color:#c8cdd4; cursor:pointer; margin-bottom:16px; }
+.chk-row:last-child { margin-bottom:0; }
 
-/* button row Y:40 */
-#force-panel #btn-turn-left  { left:20px;  top:36px; width:120px; height:34px; }
-#force-panel #btn-turn-right { left:148px; top:36px; width:120px; height:34px; }
-#force-panel #btn-center     { left:276px; top:36px; width:96px;  height:34px; }
-#force-panel #btn-stop-force { left:380px; top:36px; width:120px; height:34px; }
-#force-panel #btn-start-test { left:508px; top:36px; width:130px; height:34px; }
-#force-panel #btn-stop-test  { left:646px; top:36px; width:130px; height:34px; }
+/* ── BOTTOM BAR  (y=500, h=56) ──────────────────────────────────────────── */
+#bottom-bar { top: 500px; height: 56px; }
+#bottom-bar #btn-read   { position:absolute; left:12px;  top:14px; height:28px; width:118px; }
+#bottom-bar #btn-apply  { position:absolute; left:140px; top:14px; height:28px; width:72px;  }
+#bottom-bar #btn-save   { position:absolute; left:222px; top:14px; height:28px; width:102px; }
+#bottom-bar #btn-reset  { position:absolute; left:334px; top:14px; height:28px; width:108px; }
+#bottom-bar #lbl-status { position:absolute; right:14px; top:18px; color:#9098a1; font-size:9pt; max-width:220px; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
-/* strength row */
-#force-panel .lbl-str   { left:20px;  top:84px; width:100px; height:16px; line-height:16px; color:#C8CDD4; }
-#force-panel #sld-str   { left:128px; top:82px; width:220px; height:20px; }
-#force-panel #num-str   { left:356px; top:80px; width:50px;  height:26px; text-align:center; }
-#force-panel .lbl-pct   { left:412px; top:84px; width:20px;  height:16px; color:#AAB1B9; line-height:16px; }
-#force-panel #chk-stop-key-wrap { left:500px; top:82px; }
-
-/* ── ═══════════════════════════════════════════════════════════════════════ */
-/* SECTION 4 — WHEEL SETTINGS   X:16 Y:394 W:828 H:148                      */
-/* ════════════════════════════════════════════════════════════════════════== */
-#settings-panel { left:16px; top:394px; width:828px; height:148px; }
-
-/* two-column layout */
-/* Left column: label X:20, slider X:140, numeric X:316 */
-/* Right column: label X:430, slider X:560, numeric X:736 */
-/* rows Y: 32, 60, 88, 116 */
-
-.sl-row { position: absolute; display: flex; align-items: center; gap: 0; }
-.sl-label  { width:110px; color:#C8CDD4; font-size:8.5pt; text-align:right; padding-right:8px; }
-.sl-slider { width:166px; }
-.sl-num    { width:44px;  height:24px; text-align:center; margin-left:6px; }
-.sl-suffix { width:20px;  color:#AAB1B9; font-size:8pt; padding-left:3px; line-height:24px; }
-
-/* left col rows */
-.lc-r1 { left:20px; top:32px; }
-.lc-r2 { left:20px; top:60px; }
-.lc-r3 { left:20px; top:88px; }
-.lc-r4 { left:20px; top:116px; }
-
-/* right col rows */
-.rc-r1 { left:430px; top:32px; }
-.rc-r2 { left:430px; top:60px; }
-.rc-r3 { left:430px; top:88px; }
-
-/* checkboxes */
-#chk-inv-ffb-wrap  { position:absolute; left:558px; top:114px; }
-#chk-inv-axis-wrap { position:absolute; left:678px; top:114px; }
-
-/* settings action buttons */
-#settings-panel #btn-read-settings  { position:absolute; left:20px;  top:110px; width:130px; height:28px; }
-#settings-panel #btn-apply-settings { position:absolute; left:160px; top:110px; width:110px; height:28px; }
-#settings-panel #btn-reset-defaults { position:absolute; left:280px; top:110px; width:120px; height:28px; }
-
-/* ── ═══════════════════════════════════════════════════════════════════════ */
-/* SECTION 5 — BOTTOM BAR   X:16 Y:552 W:828 H:52                           */
-/* ════════════════════════════════════════════════════════════════════════== */
-#bottom-bar { left:16px; top:552px; width:828px; height:52px; }
-
-#bottom-bar #lbl-kb-help   { position:absolute; left:12px; top:8px;  width:420px; height:16px; color:#C8CDD4; font-size:8.5pt; line-height:16px; }
-#bottom-bar #lbl-status    { position:absolute; left:12px; top:28px; width:500px; height:16px; color:#C8CDD4; font-size:8.5pt; line-height:16px; }
-#bottom-bar #btn-emerg-stop{ position:absolute; left:648px; top:8px; width:160px; height:34px; font-size:9.5pt; }
-
-/* ── Toast notification ─────────────────────────────────────────────────── */
-#toast {
-  position: fixed;
-  bottom: 16px; right: 20px;
-  background: #2A2D31;
-  border: 1px solid #3A3D42;
-  color: #C8CDD4;
-  padding: 6px 14px;
-  font-size: 8.5pt;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s;
-  z-index: 999;
-}
-#toast.show { opacity: 1; }
-
-/* ── Mockup badge ───────────────────────────────────────────────────────── */
-#mockup-badge {
-  position: absolute;
-  right: 8px; top: 6px;
-  font-size: 7pt;
-  color: #666;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  pointer-events: none;
-}
+/* ── Content height spacer ───────────────────────────────────────────────── */
+#content-spacer { height: 568px; }
 </style>
 </head>
 <body>
 
 <div id="app-window">
 
-  <!-- Title bar chrome -->
+  <!-- Fake Windows title bar -->
   <div id="title-bar">
-    <span class="tb-btn tb-close" title="Close"></span>
-    <span class="tb-btn tb-min"   title="Minimise"></span>
-    <span class="tb-btn tb-noresize" title="Maximise disabled"></span>
-    <span class="tb-title">EMC FFB Tester</span>
-    <span id="mockup-badge">HTML Mockup</span>
+    <span class="tb-btn tb-close"></span>
+    <span class="tb-btn tb-min"></span>
+    <span class="tb-btn tb-nomax"></span>
+    <span class="tb-title" id="win-title">DIY Wheel Config</span>
+    <span id="mockup-badge">Browser Preview</span>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════════════════════ -->
-  <!-- CONTENT AREA                                                           -->
-  <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <div id="content">
 
-    <!-- ── SECTION 1: TOP DEVICE BAR ─────────────────────────────────────── -->
-    <div id="top-bar" class="panel abs">
-
-      <!-- device label -->
-      <span class="abs lbl-device dim">Device</span>
-
-      <!-- device dropdown -->
-      <select id="cbo-device" class="abs">
-        <option value="">— No device found —</option>
-        <option value="wheel1" selected>EMC Wheel (HID FFB)</option>
-        <option value="wheel2">Logitech G29</option>
-        <option value="wheel3">Thrustmaster T300</option>
+    <!-- ── TOP BAR ──────────────────────────────────────────────────────── -->
+    <div id="top-bar" class="panel">
+      <span class="lbl-port">COM Port</span>
+      <select id="cbo-port" disabled>
+        <option>COM3</option>
+        <option selected>COM4</option>
+        <option>COM5</option>
       </select>
-
-      <button id="btn-refresh"  class="abs" onclick="doRefresh()">Refresh</button>
-      <button id="btn-connect"  class="abs primary" onclick="doConnect()">Connect</button>
-      <button id="btn-disc"     class="abs" onclick="doDisconnect()" disabled>Disconnect</button>
-
-      <span id="lbl-selected"    class="abs">Selected: —</span>
-      <span id="lbl-conn-status" class="abs">Status: Not Connected</span>
-
-      <!-- Profile controls -->
-      <span class="abs lbl-profile dim">Profile</span>
-      <select id="cbo-profile" class="abs">
-        <option>Default Test</option>
-        <option>Low Force Bench</option>
-        <option>Strong Center</option>
-        <option>Left/Right Debug</option>
-      </select>
-      <button id="btn-load-profile" class="abs" onclick="doLoadProfile()">Load Profile</button>
-      <button id="btn-save-profile" class="abs" onclick="doSaveProfile()">Save Profile</button>
+      <button id="btn-refresh" onclick="doRefresh()">Refresh</button>
+      <button id="btn-connect" class="primary" onclick="doConnect()">Connect</button>
+      <button id="btn-disc"    onclick="doDisconnect()" disabled>Disconnect</button>
+      <span id="lbl-fw">Firmware: —</span>
+      <span id="lbl-status">Status: Disconnected</span>
     </div>
 
-    <!-- ── SECTION 2: LIVE STATUS / WHEEL STATE ───────────────────────────── -->
-    <div id="live-panel" class="panel abs">
-      <span class="panel-title">Live Wheel State</span>
+    <!-- ── STEERING PANEL ───────────────────────────────────────────────── -->
+    <div id="steering-panel" class="panel">
+      <span class="ptitle">Steering</span>
 
-      <!-- A — Angle label -->
-      <span id="lbl-angle-title" class="abs dim">Wheel Angle</span>
+      <!-- Draggable steering wheel SVG -->
+      <div id="wheel-wrap" class="disabled"
+           title="Drag to rotate · Arrow keys to turn · Space to centre">
+        <svg id="wheel-svg" width="190" height="190" viewBox="0 0 190 190"
+             xmlns="http://www.w3.org/2000/svg">
 
-      <!-- A — Large angle number -->
-      <div id="lbl-angle" class="abs info-color">0°</div>
+          <!-- Outer background disc -->
+          <circle cx="95" cy="95" r="90" fill="#1a1d20" stroke="#3a3d42" stroke-width="1"/>
 
-      <!-- C — Force mode -->
-      <div id="lbl-force-mode" class="abs info-color">Mode: STOPPED</div>
+          <!-- Steering range arc (drawn dynamically by JS via #arc-path) -->
+          <path id="arc-path" fill="none" stroke="#2a3a45" stroke-width="16"
+                stroke-linecap="butt"/>
 
-      <!-- D — State lines -->
-      <div id="live-state-lines" class="abs">
-        <div>Spring: <span id="live-spring">15</span>%</div>
-        <div>Soft Lock: <span id="live-softlock">900</span>°</div>
-        <div>Connected: <span id="live-conn" class="dim2">No</span></div>
+          <!-- Rim -->
+          <circle cx="95" cy="95" r="80" fill="none" stroke="#3a3f46" stroke-width="16"/>
+
+          <!-- Wheel body (rotates with angle) -->
+          <g id="wheel-body" transform="rotate(0 95 95)">
+            <!-- Three spokes -->
+            <line x1="95" y1="95" x2="95"  y2="18"  stroke="#2c3035" stroke-width="8" stroke-linecap="round"/>
+            <line x1="95" y1="95" x2="24"  y2="133" stroke="#2c3035" stroke-width="8" stroke-linecap="round"/>
+            <line x1="95" y1="95" x2="166" y2="133" stroke="#2c3035" stroke-width="8" stroke-linecap="round"/>
+            <!-- Top marker dot (position indicator) -->
+            <circle cx="95" cy="19" r="6" fill="#3e89b8"/>
+          </g>
+
+          <!-- FFB force arrow (rotates opposite — shows direction force is pushing) -->
+          <g id="ffb-arrow" transform="rotate(0 95 95)" opacity="0.85">
+            <line id="ffb-arrow-line"
+                  x1="95" y1="95" x2="95" y2="95"
+                  stroke="#e87040" stroke-width="3" stroke-linecap="round"/>
+            <polygon id="ffb-arrow-head" points="95,95 95,95 95,95"
+                     fill="#e87040"/>
+          </g>
+
+          <!-- Centre hub -->
+          <circle cx="95" cy="95" r="18" fill="#2a2d31" stroke="#4a4e55" stroke-width="2"/>
+          <text x="95" y="99" text-anchor="middle"
+                fill="#6a7280" font-size="9" font-family="Segoe UI,sans-serif">SIM</text>
+        </svg>
       </div>
 
-      <!-- E — Raw values -->
-      <div id="raw-values" class="abs">
-        <div class="rv-title">Raw / Debug</div>
-        <div>HID Axis: <span id="raw-axis">—</span></div>
-        <div>Effect Level: <span id="raw-force">—</span>%</div>
-        <div>Last HID Cmd: <span id="last-cmd">—</span></div>
-        <div>Firmware: <span id="raw-dir">—</span></div>
-      </div>
+      <!-- Angle display -->
+      <div id="lbl-angle">0°</div>
+      <div id="lbl-raw-counts">Raw Counts: 0</div>
+      <div id="lbl-sim-hint">← → keys or drag wheel · Space = centre · Release = FFB</div>
 
-      <!-- F — Wheel position bar -->
-      <div id="pos-bar-wrap" class="abs">
-        <div id="pos-track">
-          <div id="pos-center-mark"></div>
-          <div id="pos-marker"></div>
+      <!-- Range controls -->
+      <div id="range-group">
+        <div class="rg-label">Steering Range</div>
+        <div id="range-row">
+          <input id="sld-range" type="range" min="90" max="1800" value="900"
+                 oninput="onRangeSlider()" disabled>
+          <input id="nud-range" type="number" min="90" max="1800" value="900"
+                 oninput="onRangeNumeric()" disabled>
+          <span class="deg-suffix">°</span>
         </div>
-        <div id="pos-labels">
-          <span>-450°</span>
-          <span>-225°</span>
-          <span>0°</span>
-          <span>+225°</span>
-          <span>+450°</span>
+        <button id="btn-center" onclick="doSetCenter()" disabled>Set Center</button>
+        <div class="range-note">Uses same processed steering value as device output</div>
+      </div>
+
+      <!-- FFB force bar -->
+      <div id="ffb-bar-area">
+        <div class="ffb-title">FFB Motor Output  <span id="ffb-pwm">0</span> / 500 PWM</div>
+        <div id="ffb-track">
+          <div id="ffb-fill"></div>
+          <div id="ffb-center-mark" style="position:absolute;left:50%;top:0;width:1px;height:100%;background:#555b64;"></div>
         </div>
+        <div id="ffb-detail">Spring: 0 &nbsp;|&nbsp; Damping: 0 &nbsp;|&nbsp; Friction: 0</div>
       </div>
     </div>
 
-    <!-- ── SECTION 3: MANUAL FORCE CONTROL ───────────────────────────────── -->
-    <div id="force-panel" class="panel abs">
-      <span class="panel-title">Manual Force Control</span>
+    <!-- ── SETTINGS PANEL ───────────────────────────────────────────────── -->
+    <div id="settings-panel" class="panel">
+      <span class="ptitle">Force / Settings</span>
 
-      <!-- buttons row -->
-      <button id="btn-turn-left"  class="abs"          onmousedown="startForce('left')"  onmouseup="releaseForce()"  onmouseleave="releaseForce()">Turn Left</button>
-      <button id="btn-turn-right" class="abs"          onmousedown="startForce('right')" onmouseup="releaseForce()"  onmouseleave="releaseForce()">Turn Right</button>
-      <button id="btn-center"     class="abs"          onclick="doCenter()">Center</button>
-      <button id="btn-stop-force" class="abs danger"   onclick="doStopForce()">Stop Force</button>
-      <button id="btn-start-test" class="abs primary"  onclick="doStartTest()">Start Test Mode</button>
-      <button id="btn-stop-test"  class="abs"          onclick="doStopTest()">Stop Test Mode</button>
-
-      <!-- strength row -->
-      <span class="abs lbl-str dim">Force Strength</span>
-      <input id="sld-str" class="abs rangetrack" type="range" min="0" max="100" value="20"
-             oninput="syncStrength(this.value, 'sld')">
-      <input id="num-str" class="abs" type="number" min="0" max="100" value="20"
-             oninput="syncStrength(this.value, 'num')">
-      <span class="abs lbl-pct dim2">%</span>
-      <span id="chk-stop-key-wrap" class="abs">
-        <label class="chk-label">
-          <input id="chk-stop-key" type="checkbox" checked>
-          Stop on key release
-        </label>
-      </span>
-    </div>
-
-    <!-- ── SECTION 4: WHEEL SETTINGS ─────────────────────────────────────── -->
-    <div id="settings-panel" class="panel abs">
-      <span class="panel-title">Wheel Settings</span>
-
-      <!-- LEFT COLUMN -->
-      <!-- Row 1: Spring (EMC Lite: SetSpring) -->
-      <div class="sl-row abs lc-r1">
-        <span class="sl-label">Spring</span>
-        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="15"
-               data-pair="nud-spring" oninput="syncPair(this)">
-        <input class="sl-num" id="nud-spring" type="number" min="0" max="100" value="15"
-               oninput="syncPairNum(this)">
-        <span class="sl-suffix dim2">%</span>
-      </div>
-
-      <!-- Row 2: Damper (EMC Lite: SetDamper) -->
-      <div class="sl-row abs lc-r2">
-        <span class="sl-label">Damper</span>
-        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="10"
-               data-pair="nud-damper" oninput="syncPair(this)">
-        <input class="sl-num" id="nud-damper" type="number" min="0" max="100" value="10"
-               oninput="syncPairNum(this)">
-        <span class="sl-suffix dim2">%</span>
-      </div>
-
-      <!-- Row 3: Friction (EMC Lite: SetFriction) -->
-      <div class="sl-row abs lc-r3">
-        <span class="sl-label">Friction</span>
-        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="4"
-               data-pair="nud-friction" oninput="syncPair(this)">
-        <input class="sl-num" id="nud-friction" type="number" min="0" max="100" value="4"
-               oninput="syncPairNum(this)">
-        <span class="sl-suffix dim2">%</span>
-      </div>
-
-      <!-- RIGHT COLUMN -->
-      <!-- Row 1: Soft Lock / steering angle limit (EMC Lite: SetSoftlock, 0–900°) -->
-      <div class="sl-row abs rc-r1">
-        <span class="sl-label">Soft Lock</span>
-        <input class="sl-slider rangetrack" type="range" min="0" max="900" value="900"
-               data-pair="nud-softlock" oninput="syncPair(this)">
-        <input class="sl-num" id="nud-softlock" type="number" min="0" max="900" value="900"
-               style="width:52px" data-live="live-softlock" oninput="syncPairNum(this)">
-        <span class="sl-suffix dim2">°</span>
-      </div>
-
-      <!-- Row 2: Encoder CPR (EMC Lite: SetCpr — hardware encoder resolution) -->
-      <div class="sl-row abs rc-r2">
-        <span class="sl-label">Enc. CPR</span>
-        <input class="sl-slider rangetrack" type="range" min="600" max="4096" value="1024"
-               data-pair="nud-cpr" oninput="syncPair(this)">
-        <input class="sl-num" id="nud-cpr" type="number" min="600" max="4096" value="1024"
-               style="width:52px" oninput="syncPairNum(this)">
-      </div>
-
-      <!-- Row 3: hidden — EMC Lite centering is handled by Set Center button, not offset slider -->
-      <div class="sl-row abs rc-r3" style="display:none;">
-        <span class="sl-label">Center Offset</span>
-        <input class="sl-slider rangetrack" type="range" min="-500" max="500" value="0"
-               data-pair="nud-center-off" oninput="syncPair(this)">
-        <input class="sl-num" id="nud-center-off" type="number" min="-500" max="500" value="0"
-               style="width:52px" oninput="syncPairNum(this)">
-      </div>
+      <!-- Setting rows built by JS -->
+      <div id="sr-force"     class="setting-row" style="top:30px;"></div>
+      <div id="sr-min-force" class="setting-row" style="top:57px;"></div>
+      <div id="sr-damping"   class="setting-row" style="top:84px;"></div>
+      <div id="sr-friction"  class="setting-row" style="top:111px;"></div>
+      <div id="sr-spring"    class="setting-row" style="top:138px;"></div>
 
       <!-- Checkboxes -->
-      <span id="chk-inv-ffb-wrap">
-        <label class="chk-label">
-          <input id="chk-inv-ffb"  type="checkbox"> Inv. Motor
+      <div id="chk-group">
+        <label class="chk-row">
+          <input id="chk-inv-encoder" type="checkbox" disabled
+                 onchange="markDirty()"> Invert Encoder
         </label>
-      </span>
-      <span id="chk-inv-axis-wrap">
-        <label class="chk-label">
-          <input id="chk-inv-axis" type="checkbox"> Inv. Encoder
+        <label class="chk-row">
+          <input id="chk-inv-motor" type="checkbox" disabled
+                 onchange="markDirty()"> Invert Motor
         </label>
-      </span>
-
-      <!-- Action buttons -->
-      <button id="btn-read-settings"  onclick="doReadSettings()">Read Current Settings</button>
-      <button id="btn-apply-settings" class="primary" onclick="doApplySettings()">Apply Settings</button>
-      <button id="btn-reset-defaults" onclick="doResetDefaults()">Reset Defaults</button>
-
-      <!-- Inertia row (Row 4 left — EMC Lite: SetInertia) -->
-      <div class="sl-row abs" style="top:88px; left:20px;">
-        <span class="sl-label">Inertia</span>
-        <input class="sl-slider rangetrack" type="range" min="0" max="100" value="0"
-               data-pair="nud-inertia" oninput="syncPair(this)">
-        <input class="sl-num" id="nud-inertia" type="number" min="0" max="100" value="0"
-               oninput="syncPairNum(this)">
-        <span class="sl-suffix dim2">%</span>
       </div>
-
     </div>
 
-    <!-- ── SECTION 5: BOTTOM BAR ──────────────────────────────────────────── -->
-    <div id="bottom-bar" class="panel abs">
-      <span id="lbl-kb-help" class="dim">Keys: Left/Right = force · Space = stop · C = center · Up/Down = strength</span>
-      <span id="lbl-status"  class="dim">Ready</span>
-      <button id="btn-emerg-stop" class="emerg" onclick="doEmergencyStop()">EMERGENCY STOP</button>
+    <!-- ── BOTTOM BAR ────────────────────────────────────────────────────── -->
+    <div id="bottom-bar" class="panel">
+      <button id="btn-read"  onclick="doRead()"  disabled>Read from Wheel</button>
+      <button id="btn-apply" class="primary" onclick="doApply()" disabled>Apply</button>
+      <button id="btn-save"  onclick="doSave()"  disabled>Save to Wheel</button>
+      <button id="btn-reset" onclick="doReset()" disabled>Reset Defaults</button>
+      <span   id="lbl-status-line">Ready</span>
     </div>
 
+    <div id="content-spacer"></div>
   </div><!-- /content -->
 </div><!-- /app-window -->
 
-<div id="toast"></div>
-
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- JAVASCRIPT                                                             -->
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
 <script>
 "use strict";
 
-// ── App state ─────────────────────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════════════════
+   CONSTANTS
+   ══════════════════════════════════════════════════════════════════════════ */
 
-const state = {
-  connected: false,
-  testMode: false,
-  currentForce: 'none',  // 'none' | 'left' | 'right' | 'center'
-  angle: 0,
-  strength: 20,
-  liveAngleAnim: null,
-  keyLeft: false,
-  keyRight: false,
-};
+/** Encoder counts per revolution (2400 PPR from WheelMath.h) */
+const ENCODER_CPR = 2400;
+/** Counts per degree */
+const CNT_PER_DEG = ENCODER_CPR / 360;
 
-// ── Slider ↔ number sync ──────────────────────────────────────────────────
+/** Physics scaling – maps ±500 PWM to angular acceleration (deg/s²).
+    Tuned so default settings (spring=15, force=60) return from 450° in ~2s. */
+const PWM_TO_ACCEL = 2.4;
+const MAX_VEL      = 800;   // deg/s cap
 
-function updateRangeTrack(el) {
-  const min = parseFloat(el.min) || 0;
-  const max = parseFloat(el.max) || 100;
-  const val = parseFloat(el.value);
-  const pct = ((val - min) / (max - min) * 100).toFixed(1);
-  el.style.setProperty('--val', pct + '%');
-  el.style.background = `linear-gradient(to right, #4272A0 0%, #4272A0 ${pct}%, #3A3F46 ${pct}%, #3A3F46 100%)`;
-}
+/** For FFB arrow on SVG – maps ±500 PWM → spoke length in pixels */
+const ARROW_SCALE = 55 / 500;
 
-function syncPair(sliderEl) {
-  const numId = sliderEl.getAttribute('data-pair');
-  if (numId) {
-    const numEl = document.getElementById(numId);
-    if (numEl) {
-      numEl.value = sliderEl.value;
-      // update any declaratively linked live label
-      const liveId = numEl.getAttribute('data-live');
-      if (liveId) document.getElementById(liveId).textContent = sliderEl.value;
-    }
-  }
-  updateRangeTrack(sliderEl);
-}
+/* ══════════════════════════════════════════════════════════════════════════
+   SETTING DEFINITIONS  (matches MainForm.cs / WheelSettings.cs defaults)
+   ══════════════════════════════════════════════════════════════════════════ */
+const SETTING_DEFS = [
+  { rowId:"sr-force",     id:"force",     label:"Overall Force",  min:0,  max:100, def:60  },
+  { rowId:"sr-min-force", id:"min-force", label:"Minimum Force",  min:0,  max:20,  def:5   },
+  { rowId:"sr-damping",   id:"damping",   label:"Damping",        min:0,  max:100, def:10  },
+  { rowId:"sr-friction",  id:"friction",  label:"Friction",       min:0,  max:100, def:4   },
+  { rowId:"sr-spring",    id:"spring",    label:"Spring",         min:0,  max:100, def:15  },
+];
 
-function syncPairNum(numEl) {
-  // find sibling slider in same .sl-row
-  const row = numEl.closest('.sl-row');
-  if (!row) return;
-  const sld = row.querySelector('input[type="range"]');
-  if (sld) {
-    sld.value = numEl.value;
-    updateRangeTrack(sld);
-  }
-  // update any declaratively linked live label
-  const liveId = numEl.getAttribute('data-live');
-  if (liveId) document.getElementById(liveId).textContent = numEl.value;
-}
+/* ══════════════════════════════════════════════════════════════════════════
+   STATE
+   ══════════════════════════════════════════════════════════════════════════ */
+let connected   = false;
+let dirty       = false;
+let dragging    = false;
 
-function syncStrength(val, source) {
-  val = Math.max(0, Math.min(100, parseInt(val) || 0));
-  document.getElementById('sld-str').value = val;
-  document.getElementById('num-str').value = val;
-  updateRangeTrack(document.getElementById('sld-str'));
-  state.strength = val;
-  document.getElementById('raw-force').textContent = state.connected ? val : '—';
-}
+/** Simulated encoder centre (raw counts) – updated by Set Center */
+let centerCnt   = 0;
 
-// ── Initialise all range tracks ───────────────────────────────────────────
+/** Physics state */
+let simAngle    = 0;   // degrees
+let simVel      = 0;   // degrees/s
 
-document.querySelectorAll('input[type="range"].rangetrack').forEach(el => {
-  updateRangeTrack(el);
+/** Drag tracking */
+let dragStartMouseAngle = 0;
+let dragStartWheelAngle = 0;
+
+/** Keyboard */
+const keysDown  = {};
+let keyTimer    = null;
+const KEY_RATE  = 2.5;   // deg per tick
+const KEY_TICK  = 20;    // ms
+
+/** rAF loop */
+let rafId       = null;
+let lastTs      = null;
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BUILD SETTING ROWS
+   ══════════════════════════════════════════════════════════════════════════ */
+SETTING_DEFS.forEach(d => {
+  const row = document.getElementById(d.rowId);
+
+  const lbl = document.createElement("span");
+  lbl.className = "sr-label";
+  lbl.textContent = d.label;
+
+  const sld = document.createElement("input");
+  sld.type = "range"; sld.className = "sr-slider";
+  sld.id = "sld-" + d.id;
+  sld.min = d.min; sld.max = d.max; sld.value = d.def;
+  sld.disabled = true;
+
+  const nud = document.createElement("input");
+  nud.type = "number"; nud.className = "sr-nud";
+  nud.id = "nud-" + d.id;
+  nud.min = d.min; nud.max = d.max; nud.value = d.def;
+  nud.disabled = true;
+
+  row.appendChild(lbl);
+  row.appendChild(sld);
+  row.appendChild(nud);
+
+  updateSliderFill(sld);
+
+  sld.addEventListener("input", () => {
+    nud.value = sld.value;
+    updateSliderFill(sld);
+    markDirty();
+  });
+  nud.addEventListener("change", () => {
+    const v = clamp(parseFloat(nud.value) || 0, d.min, d.max);
+    nud.value = v; sld.value = v;
+    updateSliderFill(sld);
+    markDirty();
+  });
 });
 
-// ── Status helpers ────────────────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════════════════
+   HELPERS
+   ══════════════════════════════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
 
-function setStatus(msg) {
-  document.getElementById('lbl-status').textContent = msg;
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function getSetting(id) { return parseFloat($("nud-" + id).value) || 0; }
+
+function getHalfRange() { return parseFloat($("sld-range").value) / 2; }
+
+function updateSliderFill(sld) {
+  const pct = (sld.value - sld.min) / (sld.max - sld.min) * 100;
+  sld.style.setProperty("--fill", pct.toFixed(1) + "%");
 }
 
-function setForceMode(label, cssClass) {
-  const el = document.getElementById('lbl-force-mode');
-  el.textContent = 'Mode: ' + label;
-  el.className = 'abs ' + (cssClass || 'info-color');
+function setStatus(msg) { $("lbl-status-line").textContent = msg; }
+
+function markDirty() {
+  if (!connected) return;
+  dirty = true;
+  $("win-title").textContent = "DIY Wheel Config *";
 }
 
-function showToast(msg, duration = 1800) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(t._tid);
-  t._tid = setTimeout(() => t.classList.remove('show'), duration);
+function clearDirty() {
+  dirty = false;
+  $("win-title").textContent = "DIY Wheel Config";
 }
 
-// ── Angle indicator ───────────────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════════════════
+   FIRMWARE FFB MATH  (direct port of WheelMath.cpp)
+   Returns motor output in range ±500 (PWM units)
+   ══════════════════════════════════════════════════════════════════════════ */
+function computeFFB(angleDeg, velDegPerSec) {
+  const force    = getSetting("force");
+  const minForce = getSetting("min-force");
+  const spring   = getSetting("spring");
+  const damping  = getSetting("damping");
+  const friction = getSetting("friction");
 
-function setAngle(deg) {
-  // clamp to ±450 for visual bar
-  const clampedDeg = Math.max(-450, Math.min(450, deg));
-  state.angle = deg;
+  if (force === 0) return { total: 0, springF: 0, dampF: 0, fricF: 0 };
 
-  document.getElementById('lbl-angle').textContent = Math.round(deg) + '°';
+  /* ── Spring: firmware formula
+       tmp = angleDeg * spring * force
+       springF = -(tmp * 500 / 10000)                                       */
+  const springF = -(angleDeg * spring * force * 500 / 10000);
 
-  // colour hint
-  const el = document.getElementById('lbl-angle');
-  if (Math.abs(deg) < 15) el.className = 'abs info-color';
-  else if (deg < 0)        el.className = 'abs left-color';
-  else                     el.className = 'abs right-color';
+  /* ── Damping: firmware formula
+       velRaw = velDegPerSec * CNT_PER_DEG / 1000   (counts per ms ≈ per tick)
+       tmpD = velRaw * 3 * damping * force
+       dampF = -(tmpD * 500 / 200000)
+       Substituting velRaw:
+       dampF = -(velDegPerSec * CNT_PER_DEG/1000 * 3 * damping * force * 500 / 200000) */
+  const velRaw = velDegPerSec * CNT_PER_DEG / 1000;
+  const dampF  = -(velRaw * 3 * damping * force * 500 / 200000);
 
-  // position bar: 0% = far left (-450), 50% = center, 100% = far right (+450)
-  const pct = ((clampedDeg + 450) / 900) * 100;
-  document.getElementById('pos-marker').style.left = pct + '%';
+  /* ── Friction: constant opposing motion */
+  let fricF = 0;
+  if (velDegPerSec >  0.5) fricF = -(friction * force * 500 / 10000);
+  else if (velDegPerSec < -0.5) fricF =  (friction * force * 500 / 10000);
 
-  document.getElementById('raw-axis').textContent = state.connected
-    ? Math.round(deg * 13.6).toString()
-    : '—';
+  /* ── Combine ── */
+  let total = springF + dampF + fricF;
+
+  /* ── Min-force dead-zone */
+  const minF = minForce * 500 / 100;
+  if (total > 0 && total <  minF) total =  minF;
+  if (total < 0 && total > -minF) total = -minF;
+
+  /* ── Clamp to ±500 */
+  total = clamp(total, -500, 500);
+
+  /* ── Invert motor if checked */
+  if ($("chk-inv-motor").checked) total = -total;
+
+  return {
+    total:   Math.round(total),
+    springF: Math.round(clamp(springF, -500, 500)),
+    dampF:   Math.round(clamp(dampF,   -500, 500)),
+    fricF:   Math.round(clamp(fricF,   -500, 500))
+  };
 }
 
-// ── Simulated live angle animation ────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════════════════
+   PHYSICS LOOP  (runs via requestAnimationFrame)
+   ══════════════════════════════════════════════════════════════════════════ */
+function physicsLoop(ts) {
+  rafId = requestAnimationFrame(physicsLoop);
 
-function startAngleAnim(targetDeg, speed = 3) {
-  stopAngleAnim();
-  state.liveAngleAnim = setInterval(() => {
-    const cur = state.angle;
-    const diff = targetDeg - cur;
-    if (Math.abs(diff) < 0.5) {
-      setAngle(targetDeg);
-    } else {
-      setAngle(cur + diff * 0.12 + (diff > 0 ? speed : -speed) * 0.04);
-    }
-  }, 30);
+  const dt = lastTs ? Math.min((ts - lastTs) / 1000, 0.05) : 0.016;
+  lastTs = ts;
+
+  if (!connected) { updateDisplayOnly(); return; }
+
+  if (dragging) {
+    /* User controls angle directly; velocity is derived from position change.
+       We update it here so damping feels correct on release. */
+    updateDisplayOnly();
+    return;
+  }
+
+  /* ── Apply FFB as angular acceleration ── */
+  const ffb = computeFFB(simAngle, simVel);
+  const accel = ffb.total * PWM_TO_ACCEL;
+
+  simVel   += accel * dt;
+  simVel    = clamp(simVel, -MAX_VEL, MAX_VEL);
+  simAngle += simVel * dt;
+
+  /* Hard stops */
+  const half = getHalfRange();
+  if (simAngle >  half) { simAngle =  half; if (simVel > 0) simVel = 0; }
+  if (simAngle < -half) { simAngle = -half; if (simVel < 0) simVel = 0; }
+
+  updateDisplayOnly();
 }
 
-function stopAngleAnim() {
-  if (state.liveAngleAnim) {
-    clearInterval(state.liveAngleAnim);
-    state.liveAngleAnim = null;
+function updateDisplayOnly() {
+  /* Invert encoder if checked */
+  const inv   = $("chk-inv-encoder").checked;
+  const disp  = Math.round(inv ? -simAngle : simAngle);
+  const raw   = Math.round(centerCnt + simAngle * CNT_PER_DEG * (inv ? -1 : 1));
+
+  $("lbl-angle").textContent     = disp + "°";
+  $("lbl-raw-counts").textContent = "Raw Counts: " + raw;
+
+  /* Rotate wheel SVG */
+  $("wheel-body").setAttribute("transform", `rotate(${simAngle} 95 95)`);
+
+  /* FFB bar + arrow */
+  if (connected) {
+    const ffb = computeFFB(simAngle, simVel);
+    updateFFBBar(ffb);
+    updateFFBArrow(ffb.total);
+    updateRangeArc();
   }
 }
 
-function animateTo(deg) {
-  startAngleAnim(deg);
+/* ══════════════════════════════════════════════════════════════════════════
+   FFB VISUALISATIONS
+   ══════════════════════════════════════════════════════════════════════════ */
+function updateFFBBar(ffb) {
+  const t   = ffb.total;            // ±500
+  const pct = t / 500;              // ±1
+
+  const track  = $("ffb-track");
+  const fill   = $("ffb-fill");
+  const tw     = track.offsetWidth || 340;
+  const cx     = tw / 2;
+
+  if (t === 0) {
+    fill.style.left  = cx + "px";
+    fill.style.width = "0px";
+    fill.style.background = "#555b64";
+  } else if (t > 0) {
+    /* Force to the right (motor pushes right) */
+    fill.style.left  = cx + "px";
+    fill.style.width = (pct * cx) + "px";
+    fill.style.background = "#d05030";
+  } else {
+    /* Force to the left */
+    const w = (-pct) * cx;
+    fill.style.left  = (cx - w) + "px";
+    fill.style.width = w + "px";
+    fill.style.background = "#3080c0";
+  }
+
+  $("ffb-pwm").textContent = t;
+  $("ffb-detail").innerHTML =
+    `Spring: <b>${ffb.springF}</b> &nbsp;|&nbsp; ` +
+    `Damping: <b>${ffb.dampF}</b> &nbsp;|&nbsp; ` +
+    `Friction: <b>${ffb.fricF}</b>`;
 }
 
-// ── Device connect / disconnect ───────────────────────────────────────────
+function updateFFBArrow(ffbTotal) {
+  /* Draw a spoke-like arrow inside the hub showing FFB direction & magnitude.
+     ffbTotal > 0 → motor pushes clockwise → arrow points right (90° in SVG).
+     ffbTotal < 0 → motor pushes counter-clockwise → arrow points left (-90°). */
+  if (ffbTotal === 0) {
+    $("ffb-arrow-line").setAttribute("x2", 95);
+    $("ffb-arrow-line").setAttribute("y2", 95);
+    $("ffb-arrow-head").setAttribute("points", "95,95 95,95 95,95");
+    return;
+  }
 
+  /* Map PWM to angle: positive = clockwise = +90° in SVG coords */
+  const arrowAngleDeg = ffbTotal > 0 ? 90 : -90;
+  const arrowAngleRad = arrowAngleDeg * Math.PI / 180;
+  const mag  = Math.abs(ffbTotal) * ARROW_SCALE + 6;  /* min 6px visible */
+  const dx   = Math.sin(arrowAngleRad) * mag;
+  const dy   = -Math.cos(arrowAngleRad) * mag;
+
+  const x2 = 95 + dx;
+  const y2 = 95 + dy;
+
+  $("ffb-arrow-line").setAttribute("x2", x2.toFixed(1));
+  $("ffb-arrow-line").setAttribute("y2", y2.toFixed(1));
+
+  /* Arrowhead triangle */
+  const headLen = 6;
+  const headAng = 0.45;  /* ~26° half-angle */
+  const nx = dx / mag;   /* unit vector */
+  const ny = dy / mag;
+  const hx1 = x2 - headLen * (nx * Math.cos(headAng) - ny * Math.sin(headAng));
+  const hy1 = y2 - headLen * (ny * Math.cos(headAng) + nx * Math.sin(headAng));
+  const hx2 = x2 - headLen * (nx * Math.cos(-headAng) - ny * Math.sin(-headAng));
+  const hy2 = y2 - headLen * (ny * Math.cos(-headAng) + nx * Math.sin(-headAng));
+  $("ffb-arrow-head").setAttribute("points",
+    `${x2.toFixed(1)},${y2.toFixed(1)} ${hx1.toFixed(1)},${hy1.toFixed(1)} ${hx2.toFixed(1)},${hy2.toFixed(1)}`);
+}
+
+/** Draw a coloured arc on the rim showing the current steering range limit */
+function updateRangeArc() {
+  const half = getHalfRange();     /* e.g. 450° for 900° range */
+  const cx = 95, cy = 95, r = 80;
+  /* Convert half-range to SVG arc angle. Full circle = 360°.
+     Firmware range max = 900° → visual arc max = ~270°. We cap at 359° for SVG. */
+  const arcDeg = Math.min(half / 900 * 270, 359);
+  const startAngle = -90 - arcDeg;
+  const endAngle   = -90 + arcDeg;
+
+  function polar(ang) {
+    const rad = ang * Math.PI / 180;
+    return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+  }
+  const [x1, y1] = polar(startAngle);
+  const [x2, y2] = polar(endAngle);
+  const largeArc = arcDeg * 2 > 180 ? 1 : 0;
+  $("arc-path").setAttribute("d",
+    `M ${x1.toFixed(1)} ${y1.toFixed(1)} A ${r} ${r} 0 ${largeArc} 1 ${x2.toFixed(1)} ${y2.toFixed(1)}`);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DRAG INTERACTION
+   ══════════════════════════════════════════════════════════════════════════ */
+function getEventXY(e) {
+  return e.touches ? { x: e.touches[0].clientX, y: e.touches[0].clientY }
+                   : { x: e.clientX, y: e.clientY };
+}
+
+function getMouseAngleFromSVGCentre(e) {
+  const rect = $("wheel-svg").getBoundingClientRect();
+  const cx = rect.left + rect.width  / 2;
+  const cy = rect.top  + rect.height / 2;
+  const { x, y } = getEventXY(e);
+  /* atan2(dx, -dy): 0 = up, + = clockwise (same as steering wheel) */
+  return Math.atan2(x - cx, -(y - cy)) * 180 / Math.PI;
+}
+
+const wheelWrap = $("wheel-wrap");
+
+function startDrag(e) {
+  if (!connected) return;
+  e.preventDefault();
+  dragging = true;
+  dragStartMouseAngle = getMouseAngleFromSVGCentre(e);
+  dragStartWheelAngle = simAngle;
+  simVel = 0;
+}
+
+function moveDrag(e) {
+  if (!dragging) return;
+  e.preventDefault();
+  const ma = getMouseAngleFromSVGCentre(e);
+  let delta = ma - dragStartMouseAngle;
+  /* Wrap delta to ±180 to handle 0/360 seam */
+  if (delta >  180) delta -= 360;
+  if (delta < -180) delta += 360;
+  const prev = simAngle;
+  simAngle = clamp(dragStartWheelAngle + delta, -getHalfRange(), getHalfRange());
+  simVel   = (simAngle - prev) / 0.016;   /* rough velocity estimate */
+}
+
+function endDrag() { dragging = false; }
+
+wheelWrap.addEventListener("mousedown",  startDrag);
+wheelWrap.addEventListener("touchstart", startDrag, { passive: false });
+document.addEventListener("mousemove",   moveDrag);
+document.addEventListener("touchmove",   moveDrag,  { passive: false });
+document.addEventListener("mouseup",     endDrag);
+document.addEventListener("touchend",    endDrag);
+
+/* ══════════════════════════════════════════════════════════════════════════
+   KEYBOARD
+   ══════════════════════════════════════════════════════════════════════════ */
+document.addEventListener("keydown", e => {
+  if (!connected) return;
+  const tag = document.activeElement.tagName;
+  if (tag === "INPUT" || tag === "SELECT") return;
+
+  if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+    e.preventDefault();
+    keysDown[e.key] = true;
+    if (!keyTimer) keyTimer = setInterval(applyKeyTurn, KEY_TICK);
+  }
+  if (e.key === " ") {
+    e.preventDefault();
+    simAngle = 0; simVel = 0;
+    updateDisplayOnly();
+  }
+  if (e.key === "c" || e.key === "C") {
+    doSetCenter();
+  }
+});
+
+document.addEventListener("keyup", e => {
+  delete keysDown[e.key];
+  if (!keysDown["ArrowLeft"] && !keysDown["ArrowRight"]) {
+    clearInterval(keyTimer); keyTimer = null;
+  }
+});
+
+function applyKeyTurn() {
+  const half = getHalfRange();
+  if (keysDown["ArrowLeft"])  simAngle = clamp(simAngle - KEY_RATE, -half, half);
+  if (keysDown["ArrowRight"]) simAngle = clamp(simAngle + KEY_RATE, -half, half);
+  simVel = 0;
+  updateDisplayOnly();
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RANGE SLIDER SYNC
+   ══════════════════════════════════════════════════════════════════════════ */
+function onRangeSlider() {
+  $("nud-range").value = $("sld-range").value;
+  updateSliderFill($("sld-range"));
+  clampSimToRange();
+  updateRangeArc();
+  markDirty();
+}
+function onRangeNumeric() {
+  const v = clamp(parseFloat($("nud-range").value) || 90, 90, 1800);
+  $("nud-range").value = v;
+  $("sld-range").value = v;
+  updateSliderFill($("sld-range"));
+  clampSimToRange();
+  updateRangeArc();
+  markDirty();
+}
+function clampSimToRange() {
+  const h = getHalfRange();
+  simAngle = clamp(simAngle, -h, h);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ENABLE / DISABLE CONTROLS
+   ══════════════════════════════════════════════════════════════════════════ */
+const WHEEL_CONTROLS = [
+  "btn-read","btn-apply","btn-save","btn-reset","btn-center",
+  "sld-range","nud-range","chk-inv-encoder","chk-inv-motor"
+];
+SETTING_DEFS.forEach(d => {
+  WHEEL_CONTROLS.push("sld-" + d.id, "nud-" + d.id);
+});
+
+function setControlsEnabled(on) {
+  WHEEL_CONTROLS.forEach(id => {
+    const el = $(id);
+    if (el) el.disabled = !on;
+  });
+  if (on) {
+    wheelWrap.classList.remove("disabled");
+  } else {
+    wheelWrap.classList.add("disabled");
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CONNECT / DISCONNECT
+   ══════════════════════════════════════════════════════════════════════════ */
 function doRefresh() {
-  const cbo = document.getElementById('cbo-device');
-  setStatus('Scanning for devices…');
-  // simulate a brief scan
-  cbo.disabled = true;
-  setTimeout(() => {
-    cbo.disabled = false;
-    setStatus('Found 1 device.');
-    showToast('Devices refreshed');
-  }, 600);
+  setStatus("Port list refreshed");
 }
 
 function doConnect() {
-  const cbo = document.getElementById('cbo-device');
-  const name = cbo.options[cbo.selectedIndex]?.text || '—';
-  if (!cbo.value) { setStatus('No device selected.'); return; }
-
-  state.connected = true;
-  document.getElementById('btn-connect').disabled  = true;
-  document.getElementById('btn-disc').disabled     = false;
-  document.getElementById('lbl-conn-status').textContent = 'Status: Connected';
-  document.getElementById('lbl-conn-status').className   = 'abs active-color';
-  document.getElementById('lbl-selected').textContent    = 'Selected: ' + name;
-  document.getElementById('live-conn').textContent       = 'Yes';
-  document.getElementById('live-conn').className         = 'active-color';
-  document.getElementById('raw-force').textContent       = state.strength;
-  document.getElementById('raw-axis').textContent        = '0';
-  document.getElementById('raw-dir').textContent         = 'EMC Lite 0.9.32';
-  setStatus('Connected to ' + name);
-  showToast('Connected to ' + name);
-
-  // simulate live angle drift
-  setAngle(0);
-  startAngleAnim(0, 0.5);
+  connected = true;
+  $("btn-connect").disabled = true;
+  $("btn-disc").disabled    = false;
+  $("lbl-status").textContent   = "Status: Connected";
+  $("lbl-fw").textContent       = "Firmware: 1.2.0-emc";
+  setControlsEnabled(true);
+  simAngle = 0; simVel = 0; centerCnt = 0;
+  updateSliderFill($("sld-range"));
+  updateRangeArc();
+  setStatus("Connected to " + $("cbo-port").value);
+  clearDirty();
 }
 
 function doDisconnect() {
-  state.connected = false;
-  state.currentForce = 'none';
-  stopAngleAnim();
-  setAngle(0);
-
-  document.getElementById('btn-connect').disabled  = false;
-  document.getElementById('btn-disc').disabled     = true;
-  document.getElementById('lbl-conn-status').textContent = 'Status: Not Connected';
-  document.getElementById('lbl-conn-status').className   = 'abs dim2';
-  document.getElementById('live-conn').textContent       = 'No';
-  document.getElementById('live-conn').className         = 'dim2';
-  document.getElementById('raw-axis').textContent        = '—';
-  document.getElementById('raw-force').textContent       = '—';
-  document.getElementById('last-cmd').textContent        = '—';
-  document.getElementById('raw-dir').textContent         = '—';
-  setForceMode('STOPPED', 'info-color');
-  setStatus('Disconnected.');
-  showToast('Disconnected');
+  connected = false;
+  $("btn-connect").disabled = false;
+  $("btn-disc").disabled    = true;
+  $("lbl-status").textContent   = "Status: Disconnected";
+  $("lbl-fw").textContent       = "Firmware: —";
+  setControlsEnabled(false);
+  simAngle = 0; simVel = 0;
+  updateDisplayOnly();
+  updateFFBBar({ total: 0, springF: 0, dampF: 0, fricF: 0 });
+  updateFFBArrow(0);
+  setStatus("Ready");
+  clearDirty();
 }
 
-// ── Force commands ────────────────────────────────────────────────────────
-
-function startForce(dir) {
-  if (!state.connected) { setStatus('Not connected.'); return; }
-  stopAngleAnim();
-
-  if (dir === 'left') {
-    state.currentForce = 'left';
-    setForceMode('LEFT FORCE', 'left-color');
-    setStatus('Sending left force (' + state.strength + '%)');
-    document.getElementById('last-cmd').textContent = 'LEFT';
-    animateTo(-120 * (state.strength / 100));
-  } else if (dir === 'right') {
-    state.currentForce = 'right';
-    setForceMode('RIGHT FORCE', 'right-color');
-    setStatus('Sending right force (' + state.strength + '%)');
-    document.getElementById('last-cmd').textContent = 'RIGHT';
-    animateTo(120 * (state.strength / 100));
-  }
+/* ══════════════════════════════════════════════════════════════════════════
+   BUTTON HANDLERS
+   ══════════════════════════════════════════════════════════════════════════ */
+function doRead() {
+  if (!connected) return;
+  clearDirty();
+  setStatus("Settings read from wheel (simulated)");
 }
 
-function releaseForce() {
-  if (document.getElementById('chk-stop-key').checked) doStopForce();
+function doApply() {
+  if (!connected) return;
+  markDirty();
+  setStatus("Settings applied to pending");
 }
 
-function doCenter() {
-  if (!state.connected) { setStatus('Not connected.'); return; }
-  state.currentForce = 'center';
-  setForceMode('CENTERING', 'active-color');
-  setStatus('Centering…');
-  document.getElementById('last-cmd').textContent = 'CENTER';
-  animateTo(0);
+function doSave() {
+  if (!connected) return;
+  clearDirty();
+  setStatus("Settings saved to EEPROM");
 }
 
-function doStopForce() {
-  if (!state.connected && !state.testMode) { setStatus('Not connected.'); return; }
-  stopAngleAnim();
-  state.currentForce = 'none';
-  state.testMode = false;
-  setForceMode('STOPPED', 'info-color');
-  setStatus('Force stopped.');
-  document.getElementById('last-cmd').textContent = 'STOP';
-  document.getElementById('btn-start-test').classList.remove('active-preset');
-  // gentle return to center
-  startAngleAnim(0, 0.3);
+function doReset() {
+  if (!connected) return;
+  if (!confirm("Reset all settings to defaults?")) return;
+  SETTING_DEFS.forEach(d => {
+    $("sld-" + d.id).value = d.def;
+    $("nud-" + d.id).value = d.def;
+    updateSliderFill($("sld-" + d.id));
+  });
+  $("sld-range").value = 900; $("nud-range").value = 900;
+  updateSliderFill($("sld-range"));
+  $("chk-inv-encoder").checked = false;
+  $("chk-inv-motor").checked   = false;
+  clampSimToRange();
+  updateRangeArc();
+  markDirty();
+  setStatus("Defaults restored");
 }
 
-function doStartTest() {
-  if (!state.connected) { setStatus('Not connected.'); return; }
-  state.testMode = true;
-  setForceMode('TEST MODE', 'warn');
-  setStatus('Test mode active — use keys or buttons.');
-  document.getElementById('btn-start-test').classList.add('active-preset');
-  document.getElementById('last-cmd').textContent = 'TEST_MODE';
-  showToast('Test mode started');
+function doSetCenter() {
+  if (!connected) return;
+  const inv = $("chk-inv-encoder").checked;
+  centerCnt = Math.round(simAngle * CNT_PER_DEG * (inv ? -1 : 1));
+  simAngle  = 0;
+  setStatus("Center set (raw = " + centerCnt + ")");
 }
 
-function doStopTest() {
-  doStopForce();
-  showToast('Test mode stopped');
-}
+/* ══════════════════════════════════════════════════════════════════════════
+   INIT
+   ══════════════════════════════════════════════════════════════════════════ */
+/* Enable COM port select (it's simulated, so always show options) */
+$("cbo-port").disabled = false;
 
-function doEmergencyStop() {
-  stopAngleAnim();
-  state.currentForce = 'none';
-  state.testMode = false;
-  setForceMode('STOPPED', 'info-color');
-  setStatus('EMERGENCY STOP.');
-  document.getElementById('last-cmd').textContent = 'ESTOP';
-  document.getElementById('btn-start-test').classList.remove('active-preset');
-  setAngle(0);
-  showToast('⚠ EMERGENCY STOP', 2500);
-}
+/* Init slider fills */
+updateSliderFill($("sld-range"));
+SETTING_DEFS.forEach(d => updateSliderFill($("sld-" + d.id)));
 
-// ── Profile controls ──────────────────────────────────────────────────────
+/* Start physics / display loop */
+rafId = requestAnimationFrame(physicsLoop);
 
-function doLoadProfile() {
-  const name = document.getElementById('cbo-profile').value;
-  // EMC Lite settings: spring, damper, friction, inertia, softlock (°), cpr
-  const profiles = {
-    'Default Test':    { spring:15, damper:10, friction:4,  inertia:0, softlock:900, cpr:1024 },
-    'Low Force Bench': { spring:8,  damper:5,  friction:2,  inertia:0, softlock:900, cpr:1024 },
-    'Strong Center':   { spring:80, damper:20, friction:10, inertia:5, softlock:900, cpr:1024 },
-    'Left/Right Debug':{ spring:0,  damper:0,  friction:0,  inertia:0, softlock:900, cpr:1024 },
-  };
-  const p = profiles[name];
-  if (!p) return;
-
-  // populate sliders (IDs repurposed for EMC Lite params)
-  setSliderRow('nud-spring',  p.spring);    // Spring
-  setSliderRow('nud-damper',   p.damper);    // Damper
-  setSliderRow('nud-friction',   p.friction);  // Friction
-  setSliderRow('nud-inertia', p.inertia);   // Inertia
-  setSliderRow('nud-softlock',    p.softlock);  // Soft Lock
-  setSliderRow('nud-cpr',    p.cpr);       // Enc. CPR
-
-  document.getElementById('live-softlock').textContent = p.softlock;
-  document.getElementById('live-spring').textContent   = p.spring;
-  setStatus('Profile loaded: ' + name + ' — press Apply Settings to send.');
-  showToast('Profile loaded: ' + name);
-}
-
-function doSaveProfile() {
-  const name = document.getElementById('cbo-profile').value || 'Profile';
-  setStatus('Profile saved: ' + name + ' (local)');
-  showToast('Profile saved: ' + name);
-}
-
-function setSliderRow(numId, value) {
-  const numEl = document.getElementById(numId);
-  if (!numEl) return;
-  numEl.value = value;
-  syncPairNum(numEl);
-}
-
-// ── Settings panel ────────────────────────────────────────────────────────
-
-function doReadSettings() {
-  if (!state.connected) {
-    setStatus('Not connected — showing app defaults.');
-    showToast('Not connected — defaults shown');
-    return;
-  }
-  // Simulate reading EMC Lite HID settings from device
-  setStatus('Reading settings from EMC device via HID…');
-  setTimeout(() => {
-    setSliderRow('nud-spring',  15);    // Spring
-    setSliderRow('nud-damper',   10);    // Damper
-    setSliderRow('nud-friction',   4);     // Friction
-    setSliderRow('nud-inertia', 0);     // Inertia
-    setSliderRow('nud-softlock',    900);   // Soft Lock (°)
-    setSliderRow('nud-cpr',    1024);  // Encoder CPR
-    document.getElementById('chk-inv-ffb').checked  = false;
-    document.getElementById('chk-inv-axis').checked = false;
-    document.getElementById('live-softlock').textContent = '900';
-    document.getElementById('live-spring').textContent   = '15';
-    setStatus('Settings read from EMC device (HID).');
-    showToast('Settings loaded from device');
-  }, 400);
-}
-
-function doApplySettings() {
-  if (!state.connected) {
-    setStatus('Not connected — settings applied locally.');
-    showToast('Applied locally (not connected)');
-    return;
-  }
-  const spring   = document.getElementById('nud-spring').value;   // Spring
-  const softlock = document.getElementById('nud-softlock').value;     // Soft Lock
-  document.getElementById('live-spring').textContent    = spring;
-  document.getElementById('live-softlock').textContent  = softlock;
-  setStatus('Settings sent via HID to EMC device.');
-  showToast('Settings applied via HID');
-}
-
-function doResetDefaults() {
-  setSliderRow('nud-spring',  15);   // Spring default
-  setSliderRow('nud-damper',   10);   // Damper default
-  setSliderRow('nud-friction',   4);    // Friction default
-  setSliderRow('nud-inertia', 0);    // Inertia default
-  setSliderRow('nud-softlock',    900);  // Soft Lock default (°)
-  setSliderRow('nud-cpr',    1024); // Encoder CPR default
-  document.getElementById('chk-inv-ffb').checked  = false;
-  document.getElementById('chk-inv-axis').checked = false;
-  document.getElementById('live-softlock').textContent = '900';
-  document.getElementById('live-spring').textContent   = '15';
-  setStatus('Reset to EMC Lite defaults.');
-  showToast('Reset to defaults');
-}
-
-// ── Keyboard handling ─────────────────────────────────────────────────────
-
-document.addEventListener('keydown', e => {
-  if (['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)) return;
-  switch (e.code) {
-    case 'ArrowLeft':
-      if (!state.keyLeft) { state.keyLeft = true; startForce('left'); }
-      e.preventDefault(); break;
-    case 'ArrowRight':
-      if (!state.keyRight) { state.keyRight = true; startForce('right'); }
-      e.preventDefault(); break;
-    case 'Space':
-      doStopForce(); e.preventDefault(); break;
-    case 'KeyC':
-      doCenter(); e.preventDefault(); break;
-    case 'ArrowUp': {
-      const v = Math.min(100, state.strength + 5);
-      syncStrength(v, 'key'); e.preventDefault(); break;
-    }
-    case 'ArrowDown': {
-      const v = Math.max(0, state.strength - 5);
-      syncStrength(v, 'key'); e.preventDefault(); break;
-    }
-  }
-});
-
-document.addEventListener('keyup', e => {
-  if (['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)) return;
-  if (e.code === 'ArrowLeft') {
-    state.keyLeft = false;
-    if (document.getElementById('chk-stop-key').checked && !state.keyRight) releaseForce();
-  }
-  if (e.code === 'ArrowRight') {
-    state.keyRight = false;
-    if (document.getElementById('chk-stop-key').checked && !state.keyLeft) releaseForce();
-  }
-});
-
-// ── Initial sync of all range tracks ─────────────────────────────────────
-
-document.querySelectorAll('input[type="range"].rangetrack').forEach(updateRangeTrack);
-syncStrength(20, 'init');
-
-// ── Idle angle drift (cosmetic demo when connected) ───────────────────────
-
-let driftInterval = null;
-function startDrift() {
-  if (driftInterval) return;
-  driftInterval = setInterval(() => {
-    if (state.connected && state.currentForce === 'none' && !state.testMode) {
-      // small random drift
-      const target = (Math.random() - 0.5) * 6;
-      startAngleAnim(target, 0.1);
-    }
-  }, 3000);
-}
-startDrift();
+/* Initial display */
+updateDisplayOnly();
 </script>
 </body>
 </html>
