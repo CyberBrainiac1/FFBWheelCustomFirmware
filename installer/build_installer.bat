@@ -49,7 +49,7 @@ exit /b 1
 :done
 if %ERRORLEVEL%==0 (
     echo.
-    echo Installer created: installer\FFBWheelTester-Setup.exe
+    echo Installer created: installer\EMCFFBTester-Setup.exe
 ) else (
     echo ERROR: Inno Setup build failed.
 )
