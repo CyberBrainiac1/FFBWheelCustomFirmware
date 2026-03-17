@@ -5,8 +5,8 @@ using SharpDX.DirectInput;
 namespace FFBWheelTester.Forms;
 
 /// <summary>
-/// Main window of the FFB Wheel Force Test Utility.
-/// 760 × 520 px fixed dark-theme window.
+/// Main window of the EMC FFB Tester utility.
+/// 780 × 560 px fixed dark-theme window.
 /// </summary>
 public sealed class MainForm : Form
 {
@@ -15,26 +15,31 @@ public sealed class MainForm : Form
     private const int OscillateIntervalMs = 400;
 
     // ── Colours ───────────────────────────────────────────────────────────────
-    private static readonly Color C_Root    = ColorTranslator.FromHtml("#1E2124");
+    private static readonly Color C_Root    = ColorTranslator.FromHtml("#202225");
     private static readonly Color C_Panel   = ColorTranslator.FromHtml("#2A2D31");
     private static readonly Color C_Border  = ColorTranslator.FromHtml("#3A3D42");
-    private static readonly Color C_Ctrl    = ColorTranslator.FromHtml("#1A1C1F");
+    private static readonly Color C_Ctrl    = ColorTranslator.FromHtml("#1F2124");
     private static readonly Color C_Btn     = ColorTranslator.FromHtml("#3A3F46");
     private static readonly Color C_BtnBdr  = ColorTranslator.FromHtml("#555B64");
     private static readonly Color C_PrimBtn = ColorTranslator.FromHtml("#2F5F87");
     private static readonly Color C_PrimBdr = ColorTranslator.FromHtml("#4C83B1");
+    private static readonly Color C_DangerBtn = ColorTranslator.FromHtml("#6E3A3A");
+    private static readonly Color C_EmergBtn  = ColorTranslator.FromHtml("#8B2E2E");
+    private static readonly Color C_EmergBdr  = ColorTranslator.FromHtml("#B44A4A");
+    private static readonly Color C_Error     = ColorTranslator.FromHtml("#C94040");
     private static readonly Color C_Text    = ColorTranslator.FromHtml("#E6E6E6");
-    private static readonly Color C_Dim     = ColorTranslator.FromHtml("#9098A1");
-    private static readonly Color C_Warn    = ColorTranslator.FromHtml("#E8C84C");
-    private static readonly Color C_Stop    = ColorTranslator.FromHtml("#C94040");
-    private static readonly Color C_StopHov = ColorTranslator.FromHtml("#E05050");
+    private static readonly Color C_Dim     = ColorTranslator.FromHtml("#C8CDD4");
+    private static readonly Color C_DimAlt  = ColorTranslator.FromHtml("#AAB1B9");
+    private static readonly Color C_Warn    = ColorTranslator.FromHtml("#D8B86A");
+    private static readonly Color C_Stop    = ColorTranslator.FromHtml("#8B2E2E");
+    private static readonly Color C_StopHov = ColorTranslator.FromHtml("#B44A4A");
     private static readonly Color C_Active  = ColorTranslator.FromHtml("#4CAF50");
+    private static readonly Color C_ForceTxt = ColorTranslator.FromHtml("#EAF6FF");
     private static readonly Color C_Left    = ColorTranslator.FromHtml("#5B9BD5");
     private static readonly Color C_Right   = ColorTranslator.FromHtml("#D57B5B");
 
     // ── Services ──────────────────────────────────────────────────────────────
-    private readonly WheelTesterService _wheel   = new();
-    private readonly FirmwareFlasher    _flasher = new();
+    private readonly WheelTesterService _wheel;
     private readonly AppSettings        _settings;
 
     // ── Keyboard state ────────────────────────────────────────────────────────
@@ -44,36 +49,44 @@ public sealed class MainForm : Form
     private readonly System.Windows.Forms.Timer _pulseTimer;
     private readonly System.Windows.Forms.Timer _oscTimer;
     private bool _oscPhase;
+    private bool _pulseOn;
 
     // ── Top-bar controls ──────────────────────────────────────────────────────
-    private ComboBox   _cboDevice  = null!;
-    private Button     _btnRefresh = null!;
-    private Button     _btnConnect = null!;
-    private Button     _btnFlash   = null!;
-    private Label      _lblStatus  = null!;
+    private ComboBox   _cboDevice     = null!;
+    private Button     _btnRefresh    = null!;
+    private Button     _btnConnect    = null!;
+    private Button     _btnDisconnect = null!;
+    private Label      _lblSelected   = null!;
+    private Label      _lblConnStatus = null!;
 
-    // ── Centre-panel controls ─────────────────────────────────────────────────
-    private Label      _lblForce   = null!;
-    private TrackBar   _slider     = null!;
-    private NumericUpDown _numStr  = null!;
-    private Button     _btnLeft    = null!;
-    private Button     _btnRight   = null!;
-    private Button     _btnCenter  = null!;
-    private Button     _btnStop    = null!;
-    private Button     _btnPulseL  = null!;
-    private Button     _btnPulseR  = null!;
-    private Button     _btnOsc     = null!;
-    private Button     _btnPreStop = null!;
-    private CheckBox   _chkStopKey = null!;
+    // ── Main force panel controls ─────────────────────────────────────────────
+    private Label         _lblForce   = null!;
+    private TrackBar      _slider     = null!;
+    private NumericUpDown _numStr     = null!;
+    private Button        _btnLeft    = null!;
+    private Button        _btnRight   = null!;
+    private Button        _btnCenter  = null!;
+    private Button        _btnStop    = null!;
+    private CheckBox      _chkStopKey = null!;
+
+    // ── Preset panel controls ─────────────────────────────────────────────────
+    private Button _btnConstL  = null!;
+    private Button _btnConstR  = null!;
+    private Button _btnCenterSpr = null!;
+    private Button _btnPulseL  = null!;
+    private Button _btnPulseR  = null!;
+    private Button _btnOsc     = null!;
+    private Button _btnPreStop = null!;
 
     // ── Bottom controls ───────────────────────────────────────────────────────
-    private Button     _btnEStop   = null!;
-    private Label      _lblLog     = null!;
+    private Button _btnEStop   = null!;
+    private Label  _lblStatus  = null!;
 
     // ── Constructor ───────────────────────────────────────────────────────────
 
     public MainForm()
     {
+        _wheel    = new WheelTesterService();
         _settings = AppSettings.Load();
 
         _pulseTimer = new System.Windows.Forms.Timer { Interval = PulseIntervalMs };
@@ -88,120 +101,122 @@ public sealed class MainForm : Form
         _slider.Value = _settings.TestStrength;
         _numStr.Value = _settings.TestStrength;
         _chkStopKey.Checked = _settings.StopOnKeyRelease;
-
-        _flasher.Progress += line => SafeInvoke(() => Log(line));
     }
 
     // ── Form init ─────────────────────────────────────────────────────────────
 
     private void InitializeComponent()
     {
-        Text            = "FFB Wheel Force Test Utility";
-        Size            = new Size(760, 520);
+        Text            = "EMC FFB Tester";
+        Size            = new Size(780, 560);
         MinimumSize     = Size;
         MaximumSize     = Size;
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox     = false;
         BackColor       = C_Root;
         ForeColor       = C_Text;
+        Font            = new Font("Segoe UI", 9f);
         KeyPreview      = true;
+        StartPosition   = FormStartPosition.CenterScreen;
 
         BuildTopBar();
-        BuildCentrePanel();
+        BuildForcePanel();
+        BuildPresetPanel();
         BuildBottomBar();
     }
 
-    // ── TOP BAR ───────────────────────────────────────────────────────────────
+    // ── SECTION 1: TOP DEVICE BAR ────────────────────────────────────────────
+    // X:16, Y:12, W:748, H:70
 
     private void BuildTopBar()
     {
-        var pnl = MakePanel(8, 8, 742, 56);
+        var pnl = MakePanel(16, 12, 748, 70);
         Controls.Add(pnl);
 
-        int x = 8;
+        // Device label  X:12, Y:16, W:74, H:20
+        var lblDevice = MakeLabel("Device", 12, 16, 74, 20);
+        pnl.Controls.Add(lblDevice);
 
+        // Device dropdown  X:86, Y:12, W:170, H:28
         _cboDevice = new ComboBox
         {
-            Left = x, Top = 14, Width = 240, Height = 26,
+            Left = 86, Top = 12, Width = 170, Height = 28,
             BackColor = C_Ctrl, ForeColor = C_Text,
             FlatStyle = FlatStyle.Flat, DropDownStyle = ComboBoxStyle.DropDownList,
             Font = new Font("Segoe UI", 9f),
         };
+        _cboDevice.SelectedIndexChanged += OnDeviceSelectionChanged;
         pnl.Controls.Add(_cboDevice);
-        x += _cboDevice.Width + 6;
 
-        _btnRefresh = MakeBtn("⟳ Refresh", x, 13, 80, 28, C_Btn, C_BtnBdr);
+        // Refresh  X:268, Y:12, W:82, H:28
+        _btnRefresh = MakeBtn("Refresh", 268, 12, 82, 28, C_Btn, C_BtnBdr);
         _btnRefresh.Click += (_, _) => RefreshDevices();
         pnl.Controls.Add(_btnRefresh);
-        x += _btnRefresh.Width + 6;
 
-        _btnConnect = MakeBtn("Connect", x, 13, 90, 28, C_PrimBtn, C_PrimBdr);
+        // Connect  X:360, Y:12, W:78, H:28
+        _btnConnect = MakeBtn("Connect", 360, 12, 78, 28, C_PrimBtn, C_PrimBdr);
         _btnConnect.Click += OnConnectClick;
         pnl.Controls.Add(_btnConnect);
-        x += _btnConnect.Width + 6;
 
-        _btnFlash = MakeBtn("Flash EMC Hex", x, 13, 120, 28, C_Btn, C_BtnBdr);
-        _btnFlash.Click += OnFlashClick;
-        pnl.Controls.Add(_btnFlash);
-        x += _btnFlash.Width + 10;
+        // Disconnect  X:448, Y:12, W:88, H:28
+        _btnDisconnect = MakeBtn("Disconnect", 448, 12, 88, 28, C_Btn, C_BtnBdr);
+        _btnDisconnect.Enabled = false;
+        _btnDisconnect.Click += OnDisconnectClick;
+        pnl.Controls.Add(_btnDisconnect);
 
-        _lblStatus = new Label
-        {
-            Left = x, Top = 17, Width = 740 - x, Height = 20,
-            Text = "Not connected", ForeColor = C_Dim,
-            Font = new Font("Segoe UI", 9f), AutoSize = false,
-        };
-        pnl.Controls.Add(_lblStatus);
+        // Selected device label  X:12, Y:46, W:420, H:16
+        _lblSelected = MakeLabel("Selected: —", 12, 46, 420, 16, C_DimAlt);
+        pnl.Controls.Add(_lblSelected);
+
+        // Connection status label  X:548, Y:46, W:180, H:16
+        _lblConnStatus = MakeLabel("Status: Not Connected", 548, 46, 180, 16, C_DimAlt);
+        pnl.Controls.Add(_lblConnStatus);
     }
 
-    // ── CENTRE PANEL ──────────────────────────────────────────────────────────
+    // ── SECTION 2: MAIN FORCE PANEL ──────────────────────────────────────────
+    // X:16, Y:92, W:748, H:190
 
-    private void BuildCentrePanel()
+    private void BuildForcePanel()
     {
-        var pnl = MakePanel(8, 72, 742, 360);
+        var pnl = MakePanel(16, 92, 748, 190);
         Controls.Add(pnl);
 
-        // Safety warning
-        var warn = new Label
-        {
-            Left = 0, Top = 8, Width = 742, Height = 20, TextAlign = ContentAlignment.MiddleCenter,
-            Text = "⚠  Keep hands clear during testing  ⚠",
-            ForeColor = C_Warn, Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
-            BackColor = Color.Transparent,
-        };
-        pnl.Controls.Add(warn);
+        // Title  X:12, Y:8, W:180, H:18
+        var title = MakeLabel("Manual Force Control", 12, 8, 180, 18);
+        title.Font = new Font("Segoe UI", 10f, FontStyle.Bold);
+        pnl.Controls.Add(title);
 
-        // Force status label
+        // Large force status label  X:20, Y:36, W:320, H:72
         _lblForce = new Label
         {
-            Left = 0, Top = 34, Width = 742, Height = 48, TextAlign = ContentAlignment.MiddleCenter,
-            Text = "STATUS:  STOPPED",
-            ForeColor = C_Dim, Font = new Font("Segoe UI Semibold", 20f, FontStyle.Bold),
+            Left = 20, Top = 36, Width = 320, Height = 72,
+            Text = "STATUS: STOPPED",
+            ForeColor = C_ForceTxt,
+            Font = new Font("Segoe UI Semibold", 28f, FontStyle.Bold),
             BackColor = Color.Transparent,
+            AutoSize = false,
+            TextAlign = ContentAlignment.MiddleLeft,
         };
         pnl.Controls.Add(_lblForce);
 
-        // Strength row
-        var lblStr = new Label
-        {
-            Left = 30, Top = 94, Width = 110, Height = 20,
-            Text = "Force Strength:", ForeColor = C_Dim,
-            Font = new Font("Segoe UI", 9f), TextAlign = ContentAlignment.MiddleLeft,
-        };
+        // Force strength label  X:390, Y:36, W:120, H:20
+        var lblStr = MakeLabel("Force Strength", 390, 36, 120, 20, C_Dim);
         pnl.Controls.Add(lblStr);
 
+        // Force strength slider  X:390, Y:64, W:220, H:28
         _slider = new TrackBar
         {
-            Left = 148, Top = 89, Width = 380, Height = 32,
+            Left = 390, Top = 64, Width = 220, Height = 28,
             Minimum = 0, Maximum = 100, TickFrequency = 10, SmallChange = 5,
             BackColor = C_Panel,
         };
         _slider.ValueChanged += OnStrengthChanged;
         pnl.Controls.Add(_slider);
 
+        // Force strength numeric box  X:624, Y:62, W:56, H:28
         _numStr = new NumericUpDown
         {
-            Left = 536, Top = 92, Width = 60, Height = 26,
+            Left = 624, Top = 62, Width = 56, Height = 28,
             Minimum = 0, Maximum = 100,
             BackColor = C_Ctrl, ForeColor = C_Text,
             Font = new Font("Segoe UI", 9.5f), BorderStyle = BorderStyle.FixedSingle,
@@ -209,106 +224,155 @@ public sealed class MainForm : Form
         _numStr.ValueChanged += OnNumStrChanged;
         pnl.Controls.Add(_numStr);
 
-        var lblPct = new Label
-        {
-            Left = 600, Top = 94, Width = 30, Height = 20,
-            Text = "%", ForeColor = C_Dim, Font = new Font("Segoe UI", 9f),
-        };
+        // Percent suffix label  X:686, Y:66, W:24, H:20
+        var lblPct = MakeLabel("%", 686, 66, 24, 20, C_Dim);
         pnl.Controls.Add(lblPct);
 
-        // Manual control buttons
-        int by = 138, bw = 156, bh = 38, gap = 10;
-        int totalW = bw * 4 + gap * 3;
-        int bx = (742 - totalW) / 2;
+        // Manual buttons row
+        // Turn Left  X:24, Y:120, W:130, H:38
+        _btnLeft = MakeBtn("Turn Left", 24, 120, 130, 38, C_Btn, C_BtnBdr);
+        _btnLeft.MouseDown += (_, _) => SendForce(ForceCommand.Left(Strength));
+        _btnLeft.MouseUp   += (_, _) => { if (_chkStopKey.Checked) SendForce(ForceCommand.Stop()); };
+        pnl.Controls.Add(_btnLeft);
 
-        _btnLeft   = MakeBtn("◀  Turn Left",   bx,             by, bw, bh, C_Btn, C_BtnBdr);
-        _btnRight  = MakeBtn("Turn Right  ▶",  bx + bw + gap,  by, bw, bh, C_Btn, C_BtnBdr);
-        _btnCenter = MakeBtn("⊙  Center",       bx + (bw+gap)*2, by, bw, bh, C_Btn, C_BtnBdr);
-        _btnStop   = MakeBtn("■  Stop Force",   bx + (bw+gap)*3, by, bw, bh, C_Btn, C_BtnBdr);
+        // Turn Right  X:164, Y:120, W:130, H:38
+        _btnRight = MakeBtn("Turn Right", 164, 120, 130, 38, C_Btn, C_BtnBdr);
+        _btnRight.MouseDown += (_, _) => SendForce(ForceCommand.Right(Strength));
+        _btnRight.MouseUp   += (_, _) => { if (_chkStopKey.Checked) SendForce(ForceCommand.Stop()); };
+        pnl.Controls.Add(_btnRight);
 
-        _btnLeft.MouseDown   += (_, _) => SendForce(ForceCommand.Left(Strength));
-        _btnLeft.MouseUp     += (_, _) => { if (_chkStopKey.Checked) SendForce(ForceCommand.Stop()); };
-        _btnRight.MouseDown  += (_, _) => SendForce(ForceCommand.Right(Strength));
-        _btnRight.MouseUp    += (_, _) => { if (_chkStopKey.Checked) SendForce(ForceCommand.Stop()); };
-        _btnCenter.Click     += (_, _) => SendForce(ForceCommand.Center());
-        _btnStop.Click       += (_, _) => SendForce(ForceCommand.Stop());
+        // Center  X:304, Y:120, W:110, H:38
+        _btnCenter = MakeBtn("Center", 304, 120, 110, 38, C_Btn, C_BtnBdr);
+        _btnCenter.Click += (_, _) => SendForce(ForceCommand.Center());
+        pnl.Controls.Add(_btnCenter);
 
-        pnl.Controls.AddRange([_btnLeft, _btnRight, _btnCenter, _btnStop]);
+        // Stop Force  X:424, Y:120, W:130, H:38
+        _btnStop = MakeBtn("Stop Force", 424, 120, 130, 38, C_DangerBtn, C_BtnBdr);
+        _btnStop.Click += (_, _) => { StopPresets(); SendForce(ForceCommand.Stop()); };
+        pnl.Controls.Add(_btnStop);
 
-        // Preset buttons
-        int py = 196, pw = 140, ph = 32, pgap = 8;
-        int totalPW = pw * 4 + pgap * 3;
-        int px = (742 - totalPW) / 2;
-
-        var lblPreset = new Label
-        {
-            Left = 0, Top = py - 18, Width = 742, Height = 18,
-            Text = "Test Presets", ForeColor = C_Dim, Font = new Font("Segoe UI", 8.5f),
-            TextAlign = ContentAlignment.MiddleCenter,
-        };
-        pnl.Controls.Add(lblPreset);
-
-        _btnPulseL  = MakeBtn("Pulse Left",  px,                    py, pw, ph, C_Btn, C_BtnBdr);
-        _btnPulseR  = MakeBtn("Pulse Right", px + pw + pgap,        py, pw, ph, C_Btn, C_BtnBdr);
-        _btnOsc     = MakeBtn("Oscillate",   px + (pw+pgap)*2,      py, pw, ph, C_Btn, C_BtnBdr);
-        _btnPreStop = MakeBtn("Stop",        px + (pw+pgap)*3,      py, pw, ph, C_Btn, C_BtnBdr);
-
-        _btnPulseL.Click  += OnPulseLeft;
-        _btnPulseR.Click  += OnPulseRight;
-        _btnOsc.Click     += OnOscillate;
-        _btnPreStop.Click += (_, _) => StopPresets();
-
-        pnl.Controls.AddRange([_btnPulseL, _btnPulseR, _btnOsc, _btnPreStop]);
-
-        // Stop-on-key-release checkbox
+        // Stop on key release checkbox  X:580, Y:126, W:160, H:24
         _chkStopKey = new CheckBox
         {
-            Left = px, Top = 244, Width = 260, Height = 22,
-            Text = "Stop force on key / button release",
+            Left = 580, Top = 126, Width = 160, Height = 24,
+            Text = "Stop on key release",
             ForeColor = C_Dim, Font = new Font("Segoe UI", 9f),
             BackColor = Color.Transparent, Checked = true,
         };
         pnl.Controls.Add(_chkStopKey);
 
-        // Keyboard help
-        var kbHelp = new Label
+        // Warning label  X:24, Y:166, W:400, H:16
+        var warn = new Label
         {
-            Left = 0, Top = 276, Width = 742, Height = 72,
-            TextAlign = ContentAlignment.MiddleCenter, BackColor = Color.Transparent,
-            ForeColor = C_Dim, Font = new Font("Segoe UI", 8.5f),
-            Text  = "Keyboard:  ← Left force   → Right force   Space = stop   C = center\r\n" +
-                    "           ↑ +5% strength   ↓ −5% strength",
+            Left = 24, Top = 166, Width = 400, Height = 16,
+            Text = "Keep hands clear during testing",
+            ForeColor = C_Warn, Font = new Font("Segoe UI", 8f),
+            BackColor = Color.Transparent, AutoSize = false,
         };
-        pnl.Controls.Add(kbHelp);
+        pnl.Controls.Add(warn);
     }
 
-    // ── BOTTOM BAR ────────────────────────────────────────────────────────────
+    // ── SECTION 3: PRESET TEST PANEL ─────────────────────────────────────────
+    // X:16, Y:292, W:748, H:130
+
+    private void BuildPresetPanel()
+    {
+        var pnl = MakePanel(16, 292, 748, 130);
+        Controls.Add(pnl);
+
+        // Title  X:12, Y:8, W:120, H:18
+        var title = MakeLabel("Test Presets", 12, 8, 120, 18);
+        title.Font = new Font("Segoe UI", 10f, FontStyle.Bold);
+        pnl.Controls.Add(title);
+
+        // Preset buttons row 1  Y:42
+        // Constant Left  X:20, Y:42, W:120, H:34
+        _btnConstL = MakeBtn("Constant Left", 20, 42, 120, 34, C_Btn, C_BtnBdr);
+        _btnConstL.Click += (_, _) => { StopPresets(); SendForce(ForceCommand.Left(Strength)); UpdateForceLabel(ForceDirection.Left); };
+        pnl.Controls.Add(_btnConstL);
+
+        // Constant Right  X:150, Y:42, W:120, H:34
+        _btnConstR = MakeBtn("Constant Right", 150, 42, 120, 34, C_Btn, C_BtnBdr);
+        _btnConstR.Click += (_, _) => { StopPresets(); SendForce(ForceCommand.Right(Strength)); UpdateForceLabel(ForceDirection.Right); };
+        pnl.Controls.Add(_btnConstR);
+
+        // Center Spring  X:280, Y:42, W:120, H:34
+        _btnCenterSpr = MakeBtn("Center Spring", 280, 42, 120, 34, C_Btn, C_BtnBdr);
+        _btnCenterSpr.Click += (_, _) => { StopPresets(); SendForce(ForceCommand.Center()); UpdateForceLabel(ForceDirection.Center); };
+        pnl.Controls.Add(_btnCenterSpr);
+
+        // Pulse Left  X:410, Y:42, W:100, H:34
+        _btnPulseL = MakeBtn("Pulse Left", 410, 42, 100, 34, C_Btn, C_BtnBdr);
+        _btnPulseL.Click += OnPulseLeft;
+        pnl.Controls.Add(_btnPulseL);
+
+        // Pulse Right  X:520, Y:42, W:100, H:34
+        _btnPulseR = MakeBtn("Pulse Right", 520, 42, 100, 34, C_Btn, C_BtnBdr);
+        _btnPulseR.Click += OnPulseRight;
+        pnl.Controls.Add(_btnPulseR);
+
+        // Oscillate  X:630, Y:42, W:90, H:34
+        _btnOsc = MakeBtn("Oscillate", 630, 42, 90, 34, C_Btn, C_BtnBdr);
+        _btnOsc.Click += OnOscillate;
+        pnl.Controls.Add(_btnOsc);
+
+        // Stop  X:20, Y:84, W:120, H:30
+        _btnPreStop = MakeBtn("Stop", 20, 84, 120, 30, C_Btn, C_BtnBdr);
+        _btnPreStop.Click += (_, _) => StopPresets();
+        pnl.Controls.Add(_btnPreStop);
+
+        // Description text  X:160, Y:90, W:560, H:16
+        var desc = new Label
+        {
+            Left = 160, Top = 90, Width = 560, Height = 16,
+            Text = "Presets apply simple test effects only. Start at low force.",
+            ForeColor = C_DimAlt, Font = new Font("Segoe UI", 8f),
+            BackColor = Color.Transparent, AutoSize = false,
+        };
+        pnl.Controls.Add(desc);
+    }
+
+    // ── SECTION 4: BOTTOM STATUS / HELP / EMERGENCY BAR ─────────────────────
+    // X:16, Y:432, W:748, H:80
 
     private void BuildBottomBar()
     {
-        var pnl = MakePanel(8, 440, 742, 44);
+        var pnl = MakePanel(16, 432, 748, 80);
         Controls.Add(pnl);
 
+        // Keyboard shortcut help  X:12, Y:10, W:500, H:16
+        var kbHelp = new Label
+        {
+            Left = 12, Top = 10, Width = 500, Height = 16,
+            Text = "Keys: Left/Right = force, Space = stop, C = center, Up/Down = strength",
+            ForeColor = C_Dim, Font = new Font("Segoe UI", 9f),
+            BackColor = Color.Transparent, AutoSize = false,
+        };
+        pnl.Controls.Add(kbHelp);
+
+        // Status line  X:12, Y:34, W:500, H:16
+        _lblStatus = new Label
+        {
+            Left = 12, Top = 34, Width = 500, Height = 16,
+            Text = "Ready",
+            ForeColor = C_Dim, Font = new Font("Segoe UI", 9f),
+            BackColor = Color.Transparent, AutoSize = false, AutoEllipsis = true,
+        };
+        pnl.Controls.Add(_lblStatus);
+
+        // Emergency Stop  X:560, Y:18, W:160, H:40
         _btnEStop = new Button
         {
-            Left = 8, Top = 7, Width = 160, Height = 30,
-            Text = "🛑  EMERGENCY STOP",
-            BackColor = C_Stop, ForeColor = Color.White,
+            Left = 560, Top = 18, Width = 160, Height = 40,
+            Text = "EMERGENCY STOP",
+            BackColor = C_EmergBtn, ForeColor = Color.White,
             FlatStyle = FlatStyle.Flat,
             Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
         };
-        _btnEStop.FlatAppearance.BorderColor = C_Stop;
+        _btnEStop.FlatAppearance.BorderColor = C_EmergBdr;
         _btnEStop.FlatAppearance.MouseOverBackColor = C_StopHov;
         _btnEStop.Click += (_, _) => { StopPresets(); EmergencyStop(); };
         pnl.Controls.Add(_btnEStop);
-
-        _lblLog = new Label
-        {
-            Left = 178, Top = 11, Width = 554, Height = 22,
-            Text = "Ready.", ForeColor = C_Dim,
-            Font = new Font("Segoe UI", 8.5f), AutoEllipsis = true,
-        };
-        pnl.Controls.Add(_lblLog);
     }
 
     // ── UI helpers ────────────────────────────────────────────────────────────
@@ -320,15 +384,27 @@ public sealed class MainForm : Form
             Left = x, Top = y, Width = w, Height = h,
             BackColor = C_Panel,
             BorderStyle = BorderStyle.None,
-            Padding = new Padding(4),
+            Padding = new Padding(0),
         };
-        // draw border manually
         p.Paint += (_, e) =>
         {
             using var pen = new Pen(C_Border);
             e.Graphics.DrawRectangle(pen, 0, 0, p.Width - 1, p.Height - 1);
         };
         return p;
+    }
+
+    private static Label MakeLabel(string text, int x, int y, int w, int h, Color? color = null)
+    {
+        return new Label
+        {
+            Left = x, Top = y, Width = w, Height = h,
+            Text = text,
+            ForeColor = color ?? C_Text,
+            BackColor = Color.Transparent,
+            AutoSize = false,
+            TextAlign = ContentAlignment.MiddleLeft,
+        };
     }
 
     private static Button MakeBtn(string text, int x, int y, int w, int h, Color back, Color border)
@@ -362,17 +438,17 @@ public sealed class MainForm : Form
         Log($"Found {devices.Count} FFB device(s).");
     }
 
+    private void OnDeviceSelectionChanged(object? sender, EventArgs e)
+    {
+        if (_cboDevice.SelectedItem is DeviceInstance dev)
+            _lblSelected.Text = $"Selected: {dev.ProductName}";
+        else
+            _lblSelected.Text = "Selected: —";
+    }
+
     private void OnConnectClick(object? sender, EventArgs e)
     {
-        if (_wheel.FfbConnected)
-        {
-            StopPresets();
-            _wheel.DisconnectFfb();
-            _btnConnect.Text = "Connect";
-            SetStatus("Disconnected.", C_Dim);
-            UpdateForceLabel(ForceDirection.Stopped);
-            return;
-        }
+        if (_wheel.FfbConnected) return;
 
         if (_cboDevice.SelectedItem is not DeviceInstance dev)
         {
@@ -383,77 +459,31 @@ public sealed class MainForm : Form
         bool ok = _wheel.ConnectFfb(dev, Handle);
         if (ok)
         {
-            _btnConnect.Text = "Disconnect";
-            SetStatus($"Connected: {dev.ProductName}", C_Active);
+            _btnConnect.Enabled    = false;
+            _btnDisconnect.Enabled = true;
+            _lblConnStatus.Text    = "Status: Connected";
+            _lblConnStatus.ForeColor = C_Active;
+            _lblSelected.Text      = $"Selected: {dev.ProductName}";
             Log($"Connected to {dev.ProductName}");
         }
         else
         {
-            SetStatus("Connection failed.", C_Stop);
+            _lblConnStatus.Text     = "Status: Connection Failed";
+            _lblConnStatus.ForeColor = C_Error;
             Log("Failed to acquire DirectInput device.");
         }
     }
 
-    // ── Flash ─────────────────────────────────────────────────────────────────
-
-    private void OnFlashClick(object? sender, EventArgs e)
+    private void OnDisconnectClick(object? sender, EventArgs e)
     {
-        string? hex = _flasher.FindHex();
-        if (hex is null)
-        {
-            Log("Hex not found. Expected at: versions/1.2.2/firmware/leonardo-wheel.ino.hex");
-            return;
-        }
-
-        // Ask for COM port
-        string? port = PromptForPort();
-        if (port is null) return;
-
-        _btnFlash.Enabled = false;
-        Log($"Flashing: {hex}");
-        Log($"Target port: {port}");
-
-        _ = Task.Run(async () =>
-        {
-            bool ok = await _flasher.FlashAsync(hex, port);
-            SafeInvoke(() =>
-            {
-                _btnFlash.Enabled = true;
-                Log(ok ? "Flash succeeded." : "Flash failed — check log above.");
-            });
-        });
-    }
-
-    private string? PromptForPort()
-    {
-        using var dlg = new Form
-        {
-            Text = "Select COM Port", Size = new Size(300, 130),
-            FormBorderStyle = FormBorderStyle.FixedDialog,
-            StartPosition = FormStartPosition.CenterParent,
-            MaximizeBox = false, MinimizeBox = false,
-            BackColor = C_Root, ForeColor = C_Text,
-        };
-        var cb = new ComboBox
-        {
-            Left = 20, Top = 20, Width = 240, DropDownStyle = ComboBoxStyle.DropDownList,
-            BackColor = C_Ctrl, ForeColor = C_Text, FlatStyle = FlatStyle.Flat,
-        };
-        cb.Items.AddRange(WheelTesterService.GetSerialPorts());
-        if (cb.Items.Count > 0) cb.SelectedIndex = 0;
-        dlg.Controls.Add(cb);
-
-        var ok = new Button
-        {
-            Left = 80, Top = 58, Width = 140, Height = 28,
-            Text = "Flash", BackColor = C_PrimBtn, ForeColor = Color.White,
-            FlatStyle = FlatStyle.Flat, DialogResult = DialogResult.OK,
-        };
-        ok.FlatAppearance.BorderColor = C_PrimBdr;
-        dlg.Controls.Add(ok);
-        dlg.AcceptButton = ok;
-
-        return dlg.ShowDialog(this) == DialogResult.OK && cb.SelectedItem is string p ? p : null;
+        StopPresets();
+        _wheel.DisconnectFfb();
+        _btnConnect.Enabled    = true;
+        _btnDisconnect.Enabled = false;
+        _lblConnStatus.Text    = "Status: Not Connected";
+        _lblConnStatus.ForeColor = C_DimAlt;
+        UpdateForceLabel(ForceDirection.Stopped);
+        Log("Disconnected.");
     }
 
     // ── Force helpers ─────────────────────────────────────────────────────────
@@ -464,7 +494,7 @@ public sealed class MainForm : Form
     {
         if (!_wheel.FfbConnected)
         {
-            Log("Not connected.");
+            Log("Not connected — connect a device first.");
             return;
         }
         _wheel.SendForce(cmd);
@@ -483,13 +513,13 @@ public sealed class MainForm : Form
     {
         (string text, Color color) = dir switch
         {
-            ForceDirection.Left      => ("STATUS:  LEFT FORCE",   C_Left),
-            ForceDirection.Right     => ("STATUS:  RIGHT FORCE",  C_Right),
-            ForceDirection.Center    => ("STATUS:  CENTERING",    C_Active),
-            ForceDirection.PulseLeft => ("STATUS:  PULSE LEFT",   C_Left),
-            ForceDirection.PulseRight=> ("STATUS:  PULSE RIGHT",  C_Right),
-            ForceDirection.Oscillate => ("STATUS:  OSCILLATING",  C_Warn),
-            _                        => ("STATUS:  STOPPED",      C_Dim),
+            ForceDirection.Left       => ("STATUS: LEFT FORCE",   C_Left),
+            ForceDirection.Right      => ("STATUS: RIGHT FORCE",  C_Right),
+            ForceDirection.Center     => ("STATUS: CENTERING",    C_Active),
+            ForceDirection.PulseLeft  => ("STATUS: PULSE LEFT",   C_Left),
+            ForceDirection.PulseRight => ("STATUS: PULSE RIGHT",  C_Right),
+            ForceDirection.Oscillate  => ("STATUS: OSCILLATING",  C_Warn),
+            _                         => ("STATUS: STOPPED",      C_ForceTxt),
         };
         _lblForce.Text      = text;
         _lblForce.ForeColor = color;
@@ -523,8 +553,6 @@ public sealed class MainForm : Form
         _oscTimer.Start();
         UpdateForceLabel(ForceDirection.Oscillate);
     }
-
-    private bool _pulseOn;
 
     private void OnPulseTick(object? sender, EventArgs e)
     {
@@ -570,7 +598,7 @@ public sealed class MainForm : Form
         {
             switch (keyData)
             {
-                case Keys.Left  when !_keyLeft:
+                case Keys.Left when !_keyLeft:
                     _keyLeft = true;
                     StopPresets();
                     SendForce(ForceCommand.Left(Strength));
@@ -639,8 +667,7 @@ public sealed class MainForm : Form
 
     // ── Log / status ──────────────────────────────────────────────────────────
 
-    private void Log(string msg)     => _lblLog.Text = msg;
-    private void SetStatus(string msg, Color c) { _lblStatus.Text = msg; _lblStatus.ForeColor = c; }
+    private void Log(string msg) => _lblStatus.Text = msg;
 
     // ── Form close ────────────────────────────────────────────────────────────
 
@@ -652,7 +679,6 @@ public sealed class MainForm : Form
         _settings.StopOnKeyRelease = _chkStopKey.Checked;
         _settings.Save();
         _wheel.Dispose();
-        _flasher.Progress -= line => SafeInvoke(() => Log(line));
         base.OnFormClosing(e);
     }
 
