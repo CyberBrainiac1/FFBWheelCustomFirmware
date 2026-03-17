@@ -102,8 +102,10 @@ static void sendSettings() {
     Serial.print(F("SPRING="));         Serial.println(activeSettings.spring);
     Serial.print(F("RANGE="));          Serial.println(activeSettings.range);
     Serial.print(F("CENTER="));         Serial.println(activeSettings.center);
+    Serial.println(F("CPR=2400"));
     Serial.print(F("INV_ENCODER="));    Serial.println(activeSettings.invertEncoder);
     Serial.print(F("INV_MOTOR="));      Serial.println(activeSettings.invertMotor);
+    Serial.println(F("HBRIDGE_MODE=2PWM + 1DIR"));
     Serial.print(F("FW_VERSION="));     Serial.println(F(FW_VERSION));
     Serial.println(F("PRODUCT_NAME=EMC-compatible wheel"));
     Serial.println(F("PROFILE=EMC-style serial setup"));

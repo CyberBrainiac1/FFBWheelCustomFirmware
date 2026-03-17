@@ -100,10 +100,14 @@ public class WheelProtocolParser
             s.SteeringRange = Clamp(i, 90, 1800);
         if (dict.TryGetValue("CENTER", out v) && int.TryParse(v, out i))
             s.EncoderCenter = i;
+        if (dict.TryGetValue("CPR", out v) && int.TryParse(v, out i))
+            s.EncoderCpr = Clamp(i, 1, 32767);
         if (dict.TryGetValue("INV_ENCODER", out v))
             s.InvertEncoder = v == "1";
         if (dict.TryGetValue("INV_MOTOR", out v))
             s.InvertMotor = v == "1";
+        if (dict.TryGetValue("HBRIDGE_MODE", out v) && !string.IsNullOrWhiteSpace(v))
+            s.HBridgeMode = v;
         if (dict.TryGetValue("FW_VERSION", out v))
             s.FirmwareVersion = v;
         if (dict.TryGetValue("PRODUCT_NAME", out v) && !string.IsNullOrWhiteSpace(v))
