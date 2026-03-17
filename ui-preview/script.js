@@ -15,6 +15,14 @@
     var btnSave = document.getElementById("btn-save");
     var btnReset = document.getElementById("btn-reset");
     var btnCenter = document.getElementById("btn-center");
+    var btnSimHold = document.getElementById("btn-sim-hold");
+    var btnSimAuto = document.getElementById("btn-sim-auto");
+    var btnFfbBump = document.getElementById("btn-ffb-bump");
+    var btnFfbCurb = document.getElementById("btn-ffb-curb");
+    var sldTestAngle = document.getElementById("sld-test-angle");
+    var wheel = document.getElementById("wheel");
+    var ffbMeterFill = document.getElementById("ffb-meter-fill");
+    var simReadout = document.getElementById("sim-readout");
 
     var settingControls = [
         "btn-read",
@@ -35,7 +43,12 @@
         "sld-spring",
         "nud-spring",
         "chk-inv-encoder",
-        "chk-inv-motor"
+        "chk-inv-motor",
+        "sld-test-angle",
+        "btn-sim-hold",
+        "btn-sim-auto",
+        "btn-ffb-bump",
+        "btn-ffb-curb"
     ];
 
     var linkedPairs = [
@@ -49,9 +62,14 @@
 
     var connected = false;
     var dirty = false;
-    var angleTimer = null;
     var simulatedAngle = 0;
-    var direction = 1;
+    var simulatedVelocity = 0;
+    var targetAngle = 0;
+    var mode = "auto";
+    var kickTorque = 0;
+    var ffbLoad = 0;
+    var dragState = null;
+    var simLastTs = 0;
 
     function setTitle() {
         document.title = dirty ? "DIY Wheel Config *" : "DIY Wheel Config Preview";
@@ -77,6 +95,13 @@
         });
         btnConnect.disabled = enabled;
         btnDisconnect.disabled = !enabled;
+    }
+
+    function syncTestAngleBounds() {
+        var halfRange = Math.round(getHalfRange());
+        sldTestAngle.min = String(-halfRange);
+        sldTestAngle.max = String(halfRange);
+        targetAngle = clampAngle(targetAngle);
     }
 
     function syncRangeFill(input) {
@@ -115,41 +140,180 @@
         });
     });
 
+    document.getElementById("sld-range").addEventListener("input", syncTestAngleBounds);
+    document.getElementById("nud-range").addEventListener("input", syncTestAngleBounds);
+
     document.getElementById("chk-inv-encoder").addEventListener("change", markDirty);
     document.getElementById("chk-inv-motor").addEventListener("change", markDirty);
 
-    function startLiveAngle() {
-        simulatedAngle = 0;
-        direction = 1;
-        angleTimer = setInterval(function () {
-            var range = Number(document.getElementById("sld-range").value);
-            var halfRange = range / 2;
-            simulatedAngle += direction * (Math.random() * 10 + 3);
-
-            if (simulatedAngle >= halfRange) {
-                simulatedAngle = halfRange;
-                direction = -1;
-            }
-
-            if (simulatedAngle <= -halfRange) {
-                simulatedAngle = -halfRange;
-                direction = 1;
-            }
-
-            var shown = Math.round(simulatedAngle);
-            var raw = Math.round(shown * 2400 / 360);
-
-            angleValue.textContent = shown + "°";
-            rawCounts.textContent = "Raw Counts: " + raw;
-        }, 50);
+    function getHalfRange() {
+        return Number(document.getElementById("sld-range").value) / 2;
     }
 
-    function stopLiveAngle() {
-        if (angleTimer) {
-            clearInterval(angleTimer);
-            angleTimer = null;
+    function clampAngle(degrees) {
+        var halfRange = getHalfRange();
+        return Math.max(Math.min(degrees, halfRange), -halfRange);
+    }
+
+    function getPointerAngle(evt) {
+        var rect = wheel.getBoundingClientRect();
+        var cx = rect.left + rect.width / 2;
+        var cy = rect.top + rect.height / 2;
+        var dx = evt.clientX - cx;
+        var dy = evt.clientY - cy;
+        return Math.atan2(dy, dx) * 180 / Math.PI + 90;
+    }
+
+    function setMode(nextMode) {
+        mode = nextMode;
+        btnSimHold.classList.toggle("primary", nextMode === "hold");
+        btnSimAuto.classList.toggle("primary", nextMode === "auto");
+    }
+
+    function refreshSimulatorUi() {
+        wheel.style.transform = "rotate(" + simulatedAngle + "deg)";
+        var shown = Math.round(simulatedAngle);
+        var raw = Math.round(shown * 2400 / 360);
+        var sliderValue = mode === "hold" ? Math.round(targetAngle) : shown;
+
+        angleValue.textContent = shown + "°";
+        rawCounts.textContent = "Raw Counts: " + raw;
+        sldTestAngle.value = String(clampAngle(sliderValue));
+
+        var loadPercent = Math.min(Math.round(ffbLoad), 100);
+        ffbMeterFill.style.width = loadPercent + "%";
+        simReadout.textContent = "FFB Load: " + loadPercent + "%";
+    }
+
+    function injectRoadEffect(level) {
+        kickTorque += level;
+        setStatus(level > 0 ? "Road bump pulse injected" : "Curb strike pulse injected");
+    }
+
+    function runSimulator(ts) {
+        if (!simLastTs) {
+            simLastTs = ts;
         }
+
+        var dt = Math.min((ts - simLastTs) / 1000, 0.05);
+        simLastTs = ts;
+
+        if (connected) {
+            var halfRange = getHalfRange();
+            var now = ts / 1000;
+            var overall = Number(document.getElementById("sld-force").value) / 100;
+            var minForce = Number(document.getElementById("sld-min-force").value) / 100;
+            var damping = Number(document.getElementById("sld-damping").value) / 100;
+            var friction = Number(document.getElementById("sld-friction").value) / 100;
+            var spring = Number(document.getElementById("sld-spring").value) / 100;
+
+            if (mode === "auto") {
+                targetAngle = Math.sin(now * 0.9) * halfRange * 0.92;
+            }
+
+            targetAngle = clampAngle(targetAngle);
+
+            var centerTorque = -simulatedAngle * (0.12 + spring * 0.45);
+            var followTorque = (targetAngle - simulatedAngle) * (0.15 + spring * 0.65);
+            var driveTorque = (centerTorque + followTorque) * (0.35 + overall * 1.2);
+            var dampingTorque = simulatedVelocity * (0.8 + damping * 4.5 + friction * 2.4);
+            var accel = driveTorque - dampingTorque + kickTorque;
+
+            if (Math.abs(accel) > 0.01) {
+                accel += (accel > 0 ? 1 : -1) * minForce * 0.4;
+            }
+
+            simulatedVelocity += accel * dt * 30;
+            simulatedAngle += simulatedVelocity * dt * 30;
+            simulatedAngle = clampAngle(simulatedAngle);
+
+            if (Math.abs(simulatedAngle) >= halfRange && Math.abs(simulatedVelocity) > 0.01) {
+                simulatedVelocity *= -0.2;
+            }
+
+            kickTorque *= Math.max(0, 1 - dt * 7);
+            ffbLoad = Math.min(Math.abs(accel) * 10, 100);
+        }
+
+        refreshSimulatorUi();
+        window.requestAnimationFrame(runSimulator);
     }
+
+    wheel.addEventListener("pointerdown", function (evt) {
+        if (!connected) {
+            return;
+        }
+
+        dragState = {
+            pointerStart: getPointerAngle(evt),
+            wheelStart: simulatedAngle
+        };
+
+        setMode("manual");
+        wheel.setPointerCapture(evt.pointerId);
+    });
+
+    wheel.addEventListener("pointermove", function (evt) {
+        if (!connected || !dragState) {
+            return;
+        }
+
+        var pointerNow = getPointerAngle(evt);
+        var delta = pointerNow - dragState.pointerStart;
+        simulatedAngle = clampAngle(dragState.wheelStart + delta);
+        simulatedVelocity = 0;
+        targetAngle = simulatedAngle;
+    });
+
+    function endWheelDrag() {
+        dragState = null;
+    }
+
+    wheel.addEventListener("pointerup", endWheelDrag);
+    wheel.addEventListener("pointercancel", endWheelDrag);
+
+    sldTestAngle.addEventListener("input", function () {
+        if (!connected) {
+            return;
+        }
+
+        targetAngle = clampAngle(Number(sldTestAngle.value));
+        setMode("hold");
+        markDirty();
+    });
+
+    btnSimHold.addEventListener("click", function () {
+        if (!connected) {
+            return;
+        }
+
+        targetAngle = clampAngle(Number(sldTestAngle.value));
+        setMode("hold");
+        setStatus("Wheel holding test angle");
+    });
+
+    btnSimAuto.addEventListener("click", function () {
+        if (!connected) {
+            return;
+        }
+
+        setMode("auto");
+        setStatus("Wheel running auto sweep");
+    });
+
+    btnFfbBump.addEventListener("click", function () {
+        if (!connected) {
+            return;
+        }
+        injectRoadEffect(9);
+    });
+
+    btnFfbCurb.addEventListener("click", function () {
+        if (!connected) {
+            return;
+        }
+        injectRoadEffect(-12);
+    });
 
     function setConnected(state) {
         connected = state;
@@ -159,9 +323,19 @@
 
         if (state) {
             setStatus("Connected to " + document.getElementById("port-select").value);
-            startLiveAngle();
+            simulatedAngle = 0;
+            simulatedVelocity = 0;
+            targetAngle = 0;
+            kickTorque = 0;
+            ffbLoad = 0;
+            setMode("auto");
         } else {
-            stopLiveAngle();
+            setMode("manual");
+            simulatedAngle = 0;
+            simulatedVelocity = 0;
+            targetAngle = 0;
+            kickTorque = 0;
+            ffbLoad = 0;
             angleValue.textContent = "0°";
             rawCounts.textContent = "Raw Counts: 0";
             dirty = false;
@@ -230,6 +404,7 @@
         linkedPairs.forEach(function (pair) {
             syncRangeFill(document.getElementById(pair[0]));
         });
+        syncTestAngleBounds();
 
         dirty = true;
         setTitle();
@@ -241,8 +416,13 @@
             return;
         }
 
+        simulatedAngle = 0;
+        simulatedVelocity = 0;
+        targetAngle = 0;
         setStatus("Center set");
     });
 
+    window.requestAnimationFrame(runSimulator);
+    syncTestAngleBounds();
     setConnected(false);
 })();

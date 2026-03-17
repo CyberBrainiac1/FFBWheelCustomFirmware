@@ -61,6 +61,30 @@
             <div class="slider-wrap" style="top:136px;"><input id="sld-spring" type="range" min="0" max="100" value="15"></div>
             <input class="setting-numeric" id="nud-spring" type="number" min="0" max="100" value="15" style="top:134px;">
 
+            <div id="simulator-box">
+                <div id="sim-title">Wheel Simulator</div>
+                <div id="wheel-stage">
+                    <div id="wheel" title="Drag to steer">
+                        <div class="spoke v"></div>
+                        <div class="spoke h"></div>
+                        <div class="spoke d1"></div>
+                        <div class="spoke d2"></div>
+                        <div class="hub"></div>
+                    </div>
+                    <div id="ffb-meter"><div id="ffb-meter-fill"></div></div>
+                    <div id="sim-readout">FFB Load: 0%</div>
+                </div>
+
+                <div id="sim-controls">
+                    <label id="lbl-test-angle" for="sld-test-angle">Test Angle</label>
+                    <div id="sim-slider-wrap"><input id="sld-test-angle" type="range" min="-450" max="450" value="0"></div>
+                    <button id="btn-sim-hold" type="button">Hold Angle</button>
+                    <button id="btn-sim-auto" type="button">Auto Sweep</button>
+                    <button id="btn-ffb-bump" type="button">Road Bump</button>
+                    <button id="btn-ffb-curb" type="button">Curb Hit</button>
+                </div>
+            </div>
+
             <label id="chk-label-encoder"><input id="chk-inv-encoder" type="checkbox"> Invert Encoder</label>
             <label id="chk-label-motor"><input id="chk-inv-motor" type="checkbox"> Invert Motor</label>
         </section>
