@@ -1,0 +1,10 @@
+{
+    "version":  "1.2.3",
+    "fileVersion":  "1.2.3.0",
+    "builtAt":  "2026-03-17T21:04:26.5725832-07:00",
+    "appExe":  "FFBWheelConfig.exe",
+    "firmwareFiles":  [
+                          "leonardo-wheel.ino.hex",
+                          "leonardo-wheel.ino.with_bootloader.hex"
+                      ]
+}
